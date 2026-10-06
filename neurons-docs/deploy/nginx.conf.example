@@ -1,0 +1,79 @@
+# =============================================================================
+# Neurons documentation — example Nginx configuration (NOT applied anywhere)
+#
+#   Files on disk : /var/www/neurons-docs/        (index.html, fr/, assets/)
+#   Public URL    : https://docs.confoline.com/neurons/
+#
+# docs.confoline.com may host other products' documentation, so Neurons only
+# claims the /neurons/ prefix. If a server block for docs.confoline.com already
+# exists, copy ONLY the section between the "NEURONS DOCS" markers into it.
+#
+# Certificate paths below are placeholders — use the ones issued for this host.
+# =============================================================================
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name docs.confoline.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    # On nginx >= 1.25.1 you may replace "http2" here with a separate "http2 on;".
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name docs.confoline.com;
+
+    ssl_certificate     /etc/pki/tls/certs/docs.confoline.com.crt;      # placeholder
+    ssl_certificate_key /etc/pki/tls/private/docs.confoline.com.key;    # placeholder
+
+    server_tokens off;
+
+    gzip on;
+    gzip_types text/css application/javascript image/svg+xml;
+
+    # The domain root is intentionally NOT owned by Neurons; other documentation
+    # sites on docs.confoline.com get their own locations next to this one.
+
+    # ------------------------------------------------------------ NEURONS DOCS
+    # Relative asset paths need the trailing slash: /neurons -> /neurons/
+    location = /neurons {
+        absolute_redirect off;
+        return 301 /neurons/;
+    }
+
+    # Pages (HTML). "^~" stops regex locations elsewhere in the server from
+    # catching Neurons files.
+    location ^~ /neurons/ {
+        alias /var/www/neurons-docs/;
+        index index.html;
+
+        # Relative Location headers (e.g. /neurons/fr -> /neurons/fr/): correct
+        # behind a TLS terminator or reverse proxy as well.
+        absolute_redirect off;
+
+        # Never serve dotfiles or repository-only files if copied by mistake.
+        location ~ /\.                                    { return 404; }
+        location ~ ^/neurons/(README\.md|deploy/|tools/)  { return 404; }
+
+        # add_header in a location REPLACES headers set at server level, so the
+        # full set is repeated here. The CSP matches the site: no inline scripts
+        # or styles and no third-party origins.
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; object-src 'none'" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Cache-Control "no-cache" always;       # HTML: always revalidate
+    }
+
+    # Static assets. File names are not fingerprinted, so keep the TTL moderate.
+    location ^~ /neurons/assets/ {
+        alias /var/www/neurons-docs/assets/;
+
+        location ~ /\. { return 404; }
+
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Cache-Control "public, max-age=86400" always;
+    }
+    # ------------------------------------------------------------ /NEURONS DOCS
+}

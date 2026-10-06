@@ -1,0 +1,19 @@
+# OS / editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Python cache from tools/preview.py
+__pycache__/
+
+# Local deployment artefacts
+*.tar.gz
+*.zip
+
+# Never commit secrets
+.env
+*.pem
+*.key

@@ -19,7 +19,6 @@
   var navGroups = toArray(document.querySelectorAll('.nav-group'));
   var tocGroups = toArray(document.querySelectorAll('.toc-group'));
   var tocLinks = toArray(document.querySelectorAll('.toc a'));
-  var docParts = toArray(document.querySelectorAll('.doc-part'));
   var headings = toArray(document.querySelectorAll('main h2[id]'));
 
   var navById = {}, tocById = {};
@@ -41,14 +40,14 @@
     overlay.classList.add('open');
     navToggle.setAttribute('aria-expanded', 'true');
     var target = sidebar.querySelector('.nav-link.active:not([hidden])') || firstVisibleNavLink();
-    if (target) target.focus();
+    if (target) target.focus({ preventScroll: true });
   }
   function closeSidebar(returnFocus){
     if (!isSidebarOpen()) return;
     sidebar.classList.remove('open');
     overlay.classList.remove('open');
     navToggle.setAttribute('aria-expanded', 'false');
-    if (returnFocus) navToggle.focus();
+    if (returnFocus) navToggle.focus({ preventScroll: true });
   }
   navToggle.addEventListener('click', function(){
     isSidebarOpen() ? closeSidebar(true) : openSidebar();
@@ -101,13 +100,13 @@
     langMenu.classList.add('open');
     langCurrent.setAttribute('aria-expanded', 'true');
     var active = langMenu.querySelector('.lang-option.active') || langOptions[0];
-    if (active) active.focus();
+    if (active) active.focus({ preventScroll: true });
   }
   function closeLangMenu(returnFocus){
     if (!isLangMenuOpen()) return;
     langMenu.classList.remove('open');
     langCurrent.setAttribute('aria-expanded', 'false');
-    if (returnFocus) langCurrent.focus();
+    if (returnFocus) langCurrent.focus({ preventScroll: true });
   }
   langCurrent.addEventListener('click', function(e){
     e.stopPropagation();
@@ -162,28 +161,36 @@
     });
   }
 
-  /* initial state: the heading in the URL hash, otherwise the first heading */
-  var initial = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
-  if (!initial || headings.indexOf(initial) === -1) initial = headings[0];
-  if (initial){
-    setActiveHeading(initial.id);
-    var initialPart = initial.closest ? initial.closest('.doc-part') : null;
-    if (initialPart) setActivePart(initialPart.getAttribute('data-part'));
+  /* The active section is the last heading that has scrolled past the top quarter of the
+     viewport. Computed from scroll position (not intersection events) so it is correct in
+     both scroll directions, after anchor jumps and on reload; the TOC always shows the part
+     that contains the active heading. */
+  function headingPart(h){
+    var part = h.closest ? h.closest('.doc-part') : null;
+    return part ? part.getAttribute('data-part') : null;
   }
-
-  if ('IntersectionObserver' in window){
-    var partObserver = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if (entry.isIntersecting) setActivePart(entry.target.getAttribute('data-part'));
-      });
-    }, { rootMargin: '-30% 0px -65% 0px', threshold: 0 });
-    docParts.forEach(function(el){ partObserver.observe(el); });
-
-    var headingObserver = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if (entry.isIntersecting) setActiveHeading(entry.target.id);
-      });
-    }, { rootMargin: '-15% 0px -75% 0px', threshold: 0 });
-    headings.forEach(function(el){ headingObserver.observe(el); });
+  function updateActiveFromScroll(){
+    if (!headings.length) return;
+    var threshold = window.innerHeight * 0.25;
+    var current = headings[0];
+    for (var i = 0; i < headings.length; i++){
+      if (headings[i].getBoundingClientRect().top <= threshold) current = headings[i];
+      else break;
+    }
+    if (current.id !== currentHeadingId){
+      setActiveHeading(current.id);
+      setActivePart(headingPart(current));
+    }
   }
+  var scrollScheduled = false;
+  function scheduleUpdate(){
+    if (scrollScheduled) return;
+    scrollScheduled = true;
+    window.requestAnimationFrame(function(){ scrollScheduled = false; updateActiveFromScroll(); });
+  }
+  window.addEventListener('scroll', scheduleUpdate, { passive: true });
+  window.addEventListener('resize', scheduleUpdate);
+  window.addEventListener('hashchange', scheduleUpdate);
+  window.addEventListener('load', scheduleUpdate);
+  updateActiveFromScroll();
 })();
