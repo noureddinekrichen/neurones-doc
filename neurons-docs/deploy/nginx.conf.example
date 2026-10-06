@@ -8,14 +8,23 @@
 # claims the /neurons/ prefix. If a server block for docs.confoline.com already
 # exists, copy ONLY the section between the "NEURONS DOCS" markers into it.
 #
-# Certificate paths below are placeholders — use the ones issued for this host.
+# TLS uses a Let's Encrypt certificate obtained with certbot (webroot mode).
 # =============================================================================
 
 server {
     listen 80;
     listen [::]:80;
     server_name docs.confoline.com;
-    return 301 https://$host$request_uri;
+
+    # Let's Encrypt HTTP-01 challenges (certbot --webroot -w /var/www/letsencrypt).
+    # Must stay on plain HTTP, otherwise certificate renewals fail.
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 server {
@@ -24,8 +33,9 @@ server {
     listen [::]:443 ssl http2;
     server_name docs.confoline.com;
 
-    ssl_certificate     /etc/pki/tls/certs/docs.confoline.com.crt;      # placeholder
-    ssl_certificate_key /etc/pki/tls/private/docs.confoline.com.key;    # placeholder
+    # Let's Encrypt certificate (issued with certbot, see README). Adjust if you use another CA.
+    ssl_certificate     /etc/letsencrypt/live/docs.confoline.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/docs.confoline.com/privkey.pem;
 
     server_tokens off;
 

@@ -107,7 +107,7 @@ Rollback: `sudo rm -rf /var/www/neurons-docs && sudo mv /var/www/neurons-docs.pr
 
 ### 3. Nginx
 
-`deploy/nginx.conf.example` contains a complete `server` block for `docs.confoline.com`. Neurons claims **only** `/neurons/`, so other documentation can live on the same domain. If a server block for the domain already exists, copy only the part between the `NEURONS DOCS` markers into it. Set the certificate paths to the real ones.
+`deploy/nginx.conf.example` contains a complete `server` block for `docs.confoline.com`. Neurons claims **only** `/neurons/`, so other documentation can live on the same domain. If a server block for the domain already exists, copy only the part between the `NEURONS DOCS` markers into it. It expects a Let's Encrypt certificate in `/etc/letsencrypt/live/docs.confoline.com/`, issued with `certbot certonly --webroot -w /var/www/letsencrypt -d docs.confoline.com`. The HTTP block keeps `/.well-known/acme-challenge/` on plain HTTP so renewals work.
 
 Validate, then reload (a reload doesn't drop connections):
 
