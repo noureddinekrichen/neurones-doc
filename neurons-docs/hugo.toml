@@ -1,0 +1,42 @@
+# Neurons documentation — Hugo configuration.
+# Build: `hugo --minify` writes the static site to public/. Preview: `hugo server`.
+
+baseURL = "https://docs.confoline.com/neurons/"
+# Links and asset URLs in the pages are relative (see layouts/_partials/url.html), so the
+# output also works under another prefix; baseURL is used for canonical/hreflang URLs.
+
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = false   # English at /neurons/, French at /neurons/fr/
+disableDefaultLanguageRedirect = true    # no extra /neurons/en/ redirect page
+
+# Only the home page of each language is published; the guide parts are assembled into it.
+disableKinds = ["section", "taxonomy", "term", "rss", "sitemap", "404"]
+enableRobotsTXT = false
+disableHugoGeneratorInject = true
+
+[languages.en]
+  label = "English"
+  contentDir = "content/en"
+  weight = 1
+  title = "Neurons Docs"
+
+[languages.fr]
+  label = "Français"
+  contentDir = "content/fr"
+  weight = 2
+  title = "Documentation Neurons"
+
+[markup.goldmark]
+  [markup.goldmark.parser]
+    # Only explicit IDs ({#retention}): they are the anchors and must match across languages.
+    autoHeadingID = false
+    [markup.goldmark.parser.attribute]
+      title = true    # ## Heading {#id}
+      block = true    # {.steps}, {.ref-note}, table options after a block
+  [markup.goldmark.extensions.typographer]
+    disable = true    # keep straight quotes, as written
+  [markup.goldmark.renderer]
+    unsafe = false
+
+[minify.tdewolff.html]
+  keepWhitespace = false

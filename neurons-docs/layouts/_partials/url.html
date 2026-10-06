@@ -1,0 +1,9 @@
+{{- /* Relative URL from the current page to a site path, so the output works under /neurons/ or any prefix.
+       Usage: partial "url.html" (dict "page" . "path" "assets/images/x.svg")
+       "path" may also be a RelPermalink such as "/neurons/fr/" (the base path is stripped). */ -}}
+{{- $base := hugo.Sites.Default.Home.RelPermalink -}}
+{{- $here := strings.TrimPrefix $base .page.RelPermalink -}}
+{{- $up := strings.Repeat (strings.Count "/" $here) "../" -}}
+{{- $target := strings.TrimPrefix $base .path -}}
+{{- $out := cond (eq $target $here) "" (printf "%s%s" $up $target) -}}
+{{- return (cond (eq $out "") "./" $out) -}}

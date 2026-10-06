@@ -1,0 +1,68 @@
+{{- /* The guide: one page per language, assembled from the parts in content/<lang>/guide/ (ordered by weight). */ -}}
+{{- $parts := (where .Site.RegularPages "Section" "guide").ByWeight -}}
+<!DOCTYPE html>
+<html lang="{{ .Language.Lang }}">
+<head>
+{{ partial "head.html" . }}
+</head>
+<body>
+<a class="skip-link" href="#content">{{ i18n "skipToContent" }}</a>
+
+{{ partial "topbar.html" . }}
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+
+  <nav class="sidebar" id="sidebar" aria-label="{{ i18n "navLabel" }}">
+    <div id="navList">
+      {{- range $i, $p := $parts }}
+      <div class="nav-group" data-group="{{ $p.Params.part }}">
+        <div class="nav-group-title"><span class="dot"></span>{{ $p.Params.navTitle | default $p.Title }}</div>
+        {{- range $j, $h := partial "headings.html" $p }}
+        <a class="nav-link{{ if and (eq $i 0) (eq $j 0) }} active{{ end }}" href="#{{ $h.id }}">{{ $h.nav }}</a>
+        {{- end }}
+      </div>
+      {{- end }}
+    </div>
+    <div class="nav-empty" id="navEmpty" role="status" hidden>{{ i18n "noResults" }}</div>
+  </nav>
+
+  <main class="content" id="content" tabindex="-1">
+
+    <header class="doc-intro">
+      <p class="eyebrow">{{ i18n "eyebrow" }}</p>
+      <h1>{{ .Title }}</h1>
+      <p class="lede">{{ .Params.lede }}</p>
+    </header>
+
+    {{- range $parts }}
+
+    <section class="doc-part" id="s-{{ .Params.part }}" data-part="{{ .Params.part }}" aria-label="{{ .Title }}">
+      <p class="part-eyebrow">{{ .Title }}</p>
+      {{ .Content }}
+    </section>
+    {{- end }}
+
+    <footer class="doc-footer">
+      Neurons — {{ .Title }} · {{ i18n "footerSuffix" }}
+    </footer>
+
+  </main>
+
+  <aside class="toc" id="toc">
+    <nav aria-labelledby="tocLabel">
+      <div class="toc-label" id="tocLabel">{{ i18n "onThisPage" }}</div>
+      {{- range $i, $p := $parts }}
+      <div class="toc-group{{ if eq $i 0 }} active{{ end }}" data-toc-part="{{ $p.Params.part }}">
+        {{- range $j, $h := partial "headings.html" $p }}
+        <a href="#{{ $h.id }}"{{ if and (eq $i 0) (eq $j 0) }} class="active"{{ end }}>{{ $h.toc }}</a>
+        {{- end }}
+      </div>
+      {{- end }}
+    </nav>
+  </aside>
+
+</div>
+</body>
+</html>

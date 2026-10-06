@@ -2,132 +2,189 @@
 
 ## Project
 
-Static documentation website for **Neurons**, Confoline's Application Performance Monitoring (APM) platform. It contains the *Application Monitoring Guide* in English and French: services, traces, business transactions, observability, alerting, administration, deployment, the query API, and a glossary.
+Documentation website for **Neurons**, Confoline's Application Performance Monitoring (APM) platform: the *Application Monitoring Guide*, in English and French.
 
-- Production URL: `https://docs.confoline.com/neurons/` (English), `https://docs.confoline.com/neurons/fr/` (French)
-- Plain HTML, CSS and JavaScript. No build step, no framework, no server-side code, no third-party requests at runtime.
-- Every URL in the pages is relative, so the site works under the `/neurons/` base path (and under any other prefix).
+- Production: `https://docs.confoline.com/neurons/` (English) and `https://docs.confoline.com/neurons/fr/` (French)
+- Content is written in **Markdown**. [Hugo](https://gohugo.io) turns it into a plain static site (HTML/CSS/JS) that Nginx serves. There's no server-side code and nothing is loaded from third-party sites.
+- The sidebar, the "On this page" table of contents, the language switcher and the page metadata are **generated** from the content. You never edit them by hand.
 
 ```text
 neurons-docs/
-├── index.html                  English guide (default page)
-├── fr/
-│   └── index.html              French guide
-├── assets/
-│   ├── css/main.css            All styles (fonts, layout, responsive rules)
-│   ├── js/main.js              Drawer, nav filter, "/" shortcut, active-section tracking, language menu
-│   ├── js/lang-redirect.js     English page only: sends visitors who chose French to fr/
-│   ├── images/                 Official Neurons icon (SVG), PNG favicons rendered from it, search icon
-│   └── fonts/                  Self-hosted IBM Plex Sans/Mono and Plus Jakarta Sans (+ OFL licences)
-├── deploy/nginx.conf.example   Example Nginx configuration (reference only)
-├── tools/preview.py            Local preview server that mimics the /neurons/ prefix (not deployed)
-├── README.md
-└── .gitignore
+├── content/
+│   ├── en/
+│   │   ├── _index.md                  page title, description, intro text
+│   │   └── guide/                     the guide, one file per part (order = weight)
+│   │       ├── 01-introduction.md
+│   │       ├── 02-application-monitoring.md
+│   │       ├── 03-observability.md
+│   │       ├── 04-alerting.md
+│   │       ├── 05-administration.md
+│   │       └── 06-reference.md
+│   └── fr/                            same files, in French
+├── i18n/en.toml, i18n/fr.toml         interface text (search placeholder, labels…)
+├── layouts/                           page templates (design); edit only to change the layout
+├── assets/css/main.css, assets/js/    styles and behaviour (fingerprinted at build time)
+├── static/assets/fonts, images/       fonts (+ licences), logo, favicons, copied as-is
+├── hugo.toml                          site settings (base URL, languages)
+├── deploy/
+│   ├── nginx.conf.example             Nginx configuration
+│   ├── install-hugo.sh                installs the pinned Hugo version on the server
+│   └── update.sh                      pull + build + publish, on the server
+└── tools/preview.py                   preview the production build under /neurons/
 ```
 
-### How the pages work
+## Writing content
 
-- Each language is a complete static page. The language selector links between them and keeps the current section (e.g. `…/neurons/#retention` ↔ `…/neurons/fr/#retention`).
-- The visitor's choice is stored in `localStorage` (`neurons-lang`). When it is `fr`, opening `/neurons/` redirects to `/neurons/fr/`. An explicit `/neurons/fr/` link is never redirected.
-- `main.js` doesn't depend on any specific content. It works on any page that uses the same markup: `#sidebar` with `.nav-link`s, `.toc-group[data-toc-part]`, `.doc-part[data-part]` sections, and `h2[id]` headings.
+All documentation text lives in `content/<language>/guide/*.md`. Edit the English file and its French counterpart.
 
-### Adding or changing content
+### Sections
 
-- Edit the text in `index.html` and its counterpart in `fr/index.html`. Keep the section `id`s identical in both languages, because the language switch relies on them.
-- For a new section, add the `<h2 id="…">` in both pages, plus a matching link in the sidebar (`.nav-link`) and the right-hand TOC (`.toc-group` of the same part).
-- For a new standalone page or module, copy a page as a template, keep the header and sidebar markup, and link to it with a relative path (e.g. `alerting/`). Pages one folder deeper reference assets with `../assets/…`, like `fr/index.html` does.
-- Never use root-relative URLs (`/assets/…`). They would resolve outside `/neurons/`.
-- The pages contain no inline `<script>` or `style="…"`, which keeps them compatible with the strict Content-Security-Policy in the Nginx example. Keep it that way.
+Each `##` heading is a section. It appears automatically in the sidebar and in the table of contents. Give every section an **ID** in braces, and use the **same ID in both languages**. The language switch uses it to keep the reader on the same section, and it's the anchor in URLs (`…/neurons/#retention`).
+
+```markdown
+## Data Retention {#retention}
+
+Text in **Markdown**…
+
+### A sub-heading (not listed in the sidebar)
+```
+
+The sidebar uses the heading text by default. To show a shorter label, add it to the part's front matter (the block between `---` at the top of the file):
+
+```yaml
+labels:
+  retention: Data retention          # sidebar + table of contents
+tocLabels:
+  otel: OTel instrumentation         # table of contents only (optional)
+```
+
+### Front matter of a part
+
+```yaml
+---
+title: Administration & Operations   # label shown above the part's content
+navTitle: Administration             # group title in the sidebar (optional, defaults to title)
+part: part4                          # unique key for the part (same in both languages)
+weight: 5                            # position in the guide
+---
+```
+
+To add a new part, create `07-something.md` in **both** `content/en/guide/` and `content/fr/guide/` with a new `part` key and `weight: 7`. Nothing else needs to change.
+
+### Formatting cheat sheet
+
+| You want | Write |
+|---|---|
+| Bold, italic, inline code | `**bold**`, `*italic*`, `` `X-Neurones-Token` `` |
+| Bullet list | `- item` |
+| Numbered steps (purple circles) | a `1. 2. 3.` list followed by `{.steps}` on the next line |
+| Blue tip box | `{{< callout >}}Text{{< /callout >}}` |
+| Orange warning box | `{{< callout type="warn" >}}Text{{< /callout >}}` |
+| Monospace name (no grey box) | `{{< mono "deploy-neurons-apm.sh" >}}` |
+| Small grey note paragraph | the paragraph followed by `{.ref-note}` on the next line |
+| Table | a normal Markdown table, optionally followed by settings on the next line (below) |
+
+Table settings, written on the line right after the table:
+
+```markdown
+| Category | Default | Range |
+|---|---|---|
+| Logs | 30 d | 1–90 d |
+{mono="2,3" firstcol="26"}
+```
+
+- `mono="2,3"` shows columns 2 and 3 in monospace.
+- `firstcol="26"` (or `"30"`) sets the first column's width in percent.
+
+Tables scroll sideways on small screens automatically.
+
+### Interface text
+
+Texts that aren't documentation (search placeholder, "On this page", footer…) are in `i18n/en.toml` and `i18n/fr.toml`. The page title, description and intro sentence are in `content/<language>/_index.md`.
 
 ## Local preview
 
-The site must be served over HTTP. Opening the file directly (`file://`) works for reading but isn't representative.
+Install Hugo once. Version **0.158 or newer** is required; the project is tested with 0.167.0, the version the server uses.
 
-**Recommended: preview under the real base path** (Python 3, standard library only):
-
-```bash
-cd neurons-docs
-python tools/preview.py          # or: python tools/preview.py 9000
+```powershell
+winget install Hugo.Hugo        # Windows. macOS: brew install hugo
 ```
 
-Open <http://localhost:8080/neurons/>. Any request outside `/neurons/` returns 404, so a root-relative path that would break in production also breaks here.
-
-**Quick alternative:**
+Then, from `neurons-docs/`:
 
 ```bash
-cd neurons-docs
-python -m http.server 8080
+hugo server
 ```
 
-Open <http://localhost:8080/>. This serves the site at the root, so it does **not** catch base-path mistakes.
+Open <http://localhost:1313/neurons/>. The page reloads automatically every time you save a file.
 
-To reset the remembered language, run `localStorage.removeItem('neurons-lang')` in the browser console.
+To check the exact production build under the `/neurons/` prefix:
+
+```bash
+hugo --minify            # writes the site to public/ (not committed)
+python tools/preview.py  # http://localhost:8080/neurons/, 404 for anything outside /neurons/
+```
+
+To reset the remembered language in the browser, run `localStorage.removeItem('neurons-lang')` in the console.
 
 ## Production deployment
 
-|                       |                                       |
-|-----------------------|---------------------------------------|
-| Server directory      | `/var/www/neurons-docs`               |
-| Public URL            | `https://docs.confoline.com/neurons/` |
-| Files to deploy       | `index.html`, `fr/`, `assets/`        |
-| Do **not** deploy     | `README.md`, `deploy/`, `tools/`, `.gitignore` |
+| | |
+|---|---|
+| Git clone on the server | `/var/www/neurones-doc` (the Hugo project is its `neurons-docs/` folder) |
+| Directory served by Nginx | `/var/www/neurons-docs` (build output only) |
+| Public URL | `https://docs.confoline.com/neurons/` |
 
-### 1. Package and upload
+### Publishing an update
 
-```bash
-# on your workstation, from neurons-docs/
-tar -czf neurons-docs.tar.gz index.html fr assets
-scp neurons-docs.tar.gz <user>@<server>:/tmp/
-```
+1. On your computer, edit the Markdown, check it with `hugo server`, then `git commit` and `git push`.
+2. On the server, as root:
 
-### 2. Install on the server
+   ```bash
+   /var/www/neurones-doc/neurons-docs/deploy/update.sh
+   ```
 
-Extract into a fresh directory and swap it in, so files removed from the project don't linger:
+   The script pulls the repository, builds into a temporary folder, and only replaces the live site if the build succeeds. It also sets permissions and the SELinux labels. You don't need to reload Nginx.
 
-```bash
-sudo mkdir -p /var/www/neurons-docs.new
-sudo tar -xzf /tmp/neurons-docs.tar.gz -C /var/www/neurons-docs.new
-
-# permissions: owned by root, readable by nginx
-sudo chown -R root:root /var/www/neurons-docs.new
-sudo find /var/www/neurons-docs.new -type d -exec chmod 755 {} +
-sudo find /var/www/neurons-docs.new -type f -exec chmod 644 {} +
-
-# swap (keeps the previous version for rollback)
-[ -d /var/www/neurons-docs ] && sudo rm -rf /var/www/neurons-docs.prev && sudo mv /var/www/neurons-docs /var/www/neurons-docs.prev
-sudo mv /var/www/neurons-docs.new /var/www/neurons-docs
-
-# Rocky Linux runs SELinux in enforcing mode: give the files the web-content label,
-# otherwise nginx answers 403 even with correct permissions
-sudo restorecon -Rv /var/www/neurons-docs
-rm /tmp/neurons-docs.tar.gz
-```
-
-Rollback: `sudo rm -rf /var/www/neurons-docs && sudo mv /var/www/neurons-docs.prev /var/www/neurons-docs`.
-
-### 3. Nginx
-
-`deploy/nginx.conf.example` contains a complete `server` block for `docs.confoline.com`. Neurons claims **only** `/neurons/`, so other documentation can live on the same domain. If a server block for the domain already exists, copy only the part between the `NEURONS DOCS` markers into it. It expects a Let's Encrypt certificate in `/etc/letsencrypt/live/docs.confoline.com/`, issued with `certbot certonly --webroot -w /var/www/letsencrypt -d docs.confoline.com`. The HTTP block keeps `/.well-known/acme-challenge/` on plain HTTP so renewals work.
-
-Validate, then reload (a reload doesn't drop connections):
+### First-time setup on a new server
 
 ```bash
-sudo nginx -t
-sudo systemctl reload nginx
+dnf install -y git rsync nginx
+git clone https://github.com/noureddinekrichen/neurones-doc.git /var/www/neurones-doc
+bash /var/www/neurones-doc/neurons-docs/deploy/install-hugo.sh      # pinned version, checksum-verified
+bash /var/www/neurones-doc/neurons-docs/deploy/update.sh
 ```
 
-### 4. Check
+Then set up Nginx and the certificate as described below. To upgrade Hugo later, change `HUGO_VERSION` in `deploy/install-hugo.sh` and run it again.
+
+### Nginx
+
+`deploy/nginx.conf.example` contains a complete `server` block for `docs.confoline.com`. Neurons claims **only** `/neurons/`, so other documentation can live on the same domain. If a server block for the domain already exists, copy only the part between the `NEURONS DOCS` markers into it.
+
+The example expects a Let's Encrypt certificate in `/etc/letsencrypt/live/docs.confoline.com/`. Get it with:
 
 ```bash
-curl -I https://docs.confoline.com/neurons/                      # 200
-curl -I https://docs.confoline.com/neurons/fr/                   # 200
-curl -I https://docs.confoline.com/neurons/assets/css/main.css   # 200, text/css
-curl -I https://docs.confoline.com/neurons                       # 301 -> /neurons/
-curl -I https://docs.confoline.com/neurons/README.md             # 404
+certbot certonly --webroot -w /var/www/letsencrypt -d docs.confoline.com
 ```
 
-Then open both pages in a browser and check the developer console: there should be no errors and no blocked (CSP) resources.
+The HTTP block keeps `/.well-known/acme-challenge/` on plain HTTP, so renewals work.
+
+Caching: HTML is always revalidated. CSS/JS file names contain a content hash (added by the build), so they're cached for a year and still update immediately when they change. Fonts and images are cached for a day.
+
+```bash
+/bin/cp -f /var/www/neurones-doc/neurons-docs/deploy/nginx.conf.example /etc/nginx/conf.d/docs.confoline.com.conf
+nginx -t && systemctl reload nginx
+```
+
+### Checks
+
+```bash
+curl -I https://docs.confoline.com/neurons/        # 200
+curl -I https://docs.confoline.com/neurons/fr/     # 200
+curl -I http://docs.confoline.com/neurons/         # 301 -> https
+curl -I https://docs.confoline.com/neurons         # 301 -> /neurons/
+```
 
 ## Third-party assets
 
-The fonts are self-hosted copies of **IBM Plex Sans**, **IBM Plex Mono** and **Plus Jakarta Sans** (Latin subset, as distributed by Google Fonts). All three are licensed under the SIL Open Font License 1.1, which allows redistribution. The licence texts are in `assets/fonts/OFL-*.txt` and must stay alongside the font files.
+The fonts are self-hosted copies of **IBM Plex Sans**, **IBM Plex Mono** and **Plus Jakarta Sans** (Latin subset, as distributed by Google Fonts). All three are licensed under the SIL Open Font License 1.1, which allows redistribution. The licence texts are in `static/assets/fonts/OFL-*.txt` and must stay alongside the font files.

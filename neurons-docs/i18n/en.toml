@@ -1,0 +1,12 @@
+# Interface text (everything that is not documentation content).
+skipToContent     = "Skip to content"
+openToc           = "Open the table of contents"
+homeLabel         = "Neurons documentation home"
+languageButton    = "Language: English"
+searchLabel       = "Search the documentation"
+searchPlaceholder = "Search…"
+noResults         = "No results."
+navLabel          = "Documentation"
+onThisPage        = "On this page"
+eyebrow           = "Product documentation · Confoline"
+footerSuffix      = "Confoline internal documentation"

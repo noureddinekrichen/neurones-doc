@@ -1,0 +1,27 @@
+{{- /* Every Markdown table is wrapped in .table-wrap (scrolls horizontally on small screens).
+       Optional settings on the line after the table:
+         {firstcol="26"}   first column width in % (26 or 30, see main.css)
+         {mono="2,3"}      columns (1-based) rendered in monospace */ -}}
+{{- $firstcol := .Attributes.firstcol -}}
+{{- $mono := slice -}}
+{{- with .Attributes.mono }}{{ range split (string .) "," }}{{ $mono = $mono | append (int (strings.TrimSpace .)) }}{{ end }}{{ end -}}
+<div class="table-wrap"><table>
+  <thead>
+    {{- range .THead }}
+    <tr>
+      {{- range $i, $c := . }}
+      <th scope="col"{{ if and $firstcol (eq $i 0) }} class="col-{{ $firstcol }}"{{ end }}>{{ $c.Text }}</th>
+      {{- end }}
+    </tr>
+    {{- end }}
+  </thead>
+  <tbody>
+    {{- range .TBody }}
+    <tr>
+      {{- range $i, $c := . }}
+      <td{{ if in $mono (add $i 1) }} class="mono"{{ end }}>{{ $c.Text }}</td>
+      {{- end }}
+    </tr>
+    {{- end }}
+  </tbody>
+</table></div>

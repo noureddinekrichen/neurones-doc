@@ -1,3 +1,8 @@
+# Hugo build output and caches (the site is built from content/, layouts/, assets/, static/)
+public/
+resources/_gen/
+.hugo_build.lock
+
 # OS / editor files
 .DS_Store
 Thumbs.db

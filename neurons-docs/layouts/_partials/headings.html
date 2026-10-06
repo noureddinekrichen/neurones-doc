@@ -1,0 +1,21 @@
+{{- /* Returns the level-2 headings of a guide part as [{id, nav, toc}].
+       Labels default to the heading text; a part's front matter can shorten them:
+         labels:    { <id>: "Sidebar and TOC label" }
+         tocLabels: { <id>: "Shorter TOC-only label" }   */ -}}
+{{- $out := slice -}}
+{{- $labels := .Params.labels | default dict -}}
+{{- $tocLabels := .Params.tocLabels | default dict -}}
+{{- $flat := slice -}}
+{{- range .Fragments.Headings -}}
+  {{- $flat = $flat | append . -}}
+  {{- range .Headings }}{{ $flat = $flat | append . }}{{ end -}}
+{{- end -}}
+{{- range $flat -}}
+  {{- if and (eq .Level 2) .ID -}}
+    {{- $title := .Title | htmlUnescape -}}
+    {{- $nav := index $labels .ID | default $title -}}
+    {{- $toc := index $tocLabels .ID | default $nav -}}
+    {{- $out = $out | append (dict "id" .ID "nav" $nav "toc" $toc) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

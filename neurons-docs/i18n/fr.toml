@@ -1,0 +1,12 @@
+# Textes de l'interface (tout ce qui n'est pas du contenu de documentation).
+skipToContent     = "Aller au contenu"
+openToc           = "Ouvrir le sommaire"
+homeLabel         = "Accueil de la documentation Neurons"
+languageButton    = "Langue : Français"
+searchLabel       = "Rechercher dans la documentation"
+searchPlaceholder = "Rechercher…"
+noResults         = "Aucun résultat."
+navLabel          = "Documentation"
+onThisPage        = "Sur cette page"
+eyebrow           = "Documentation produit · Confoline"
+footerSuffix      = "Documentation interne Confoline"

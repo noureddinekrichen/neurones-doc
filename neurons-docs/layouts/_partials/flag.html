@@ -1,0 +1,6 @@
+{{- /* Flag icon for a language code. Add a branch here when adding a language. */ -}}
+{{- if eq . "fr" -}}
+<svg class="flag-icon" width="18" height="13" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" x="0" fill="#0055A4"/><rect width="1" height="2" x="1" fill="#FFFFFF"/><rect width="1" height="2" x="2" fill="#EF4135"/></svg>
+{{- else -}}
+<svg class="flag-icon" width="18" height="13" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#00247D"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#FFFFFF" stroke-width="8"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#CF142B" stroke-width="4"/><path d="M30,0 V40 M0,20 H60" stroke="#FFFFFF" stroke-width="14"/><path d="M30,0 V40 M0,20 H60" stroke="#CF142B" stroke-width="8"/></svg>
+{{- end -}}
