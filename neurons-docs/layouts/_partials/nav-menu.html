@@ -1,0 +1,20 @@
+{{- /* Renders "onboarding" menu entries recursively.
+       An entry with children is a collapsible category (button .nav-sub-title + .nav-items) wrapped in a
+       .nav-sub (each level is indented one step); it starts open.
+       An entry without children is a link to its page.
+       Params: entries, page (current page), trail (labels of the enclosing group/categories, for search). */ -}}
+{{- $page := .page -}}
+{{- $trail := .trail -}}
+{{- range .entries }}
+  {{- if .HasChildren }}
+          <div class="nav-sub" data-group="{{ .Identifier }}">
+            <button type="button" class="nav-sub-title" aria-expanded="true" aria-controls="nav-{{ .Identifier }}">{{ .Name }}{{ partial "nav-toggle-icon.html" }}</button>
+            <div class="nav-items" id="nav-{{ .Identifier }}">
+              {{- partial "nav-menu.html" (dict "entries" .Children "page" $page "trail" (printf "%s %s" $trail .Name)) }}
+            </div>
+          </div>
+  {{- else }}
+    {{- $current := and .Page (eq .Page.RelPermalink $page.RelPermalink) }}
+          <a class="nav-link{{ if $current }} active{{ end }}" href="{{ partial "url.html" (dict "page" $page "path" .URL) }}" data-search="{{ $trail }}"{{ if $current }} aria-current="page"{{ end }}>{{ .Name }}</a>
+  {{- end }}
+{{- end }}

@@ -32,7 +32,7 @@ Neurons exposes an HTTP API that powers every screen described in this document.
 | Operations | 2 | Health check and Prometheus export, unauthenticated. |
 {mono="2"}
 
-This summary is meant to give a sense of the platform's capabilities; for the technical detail of each parameter, see the interactive Swagger documentation published by the service (path `/docs`).
+This summary is meant to give a sense of the platform's capabilities. The [Query API reference](reference/query-api/) lists every endpoint with its path and purpose; for the technical detail of each parameter, see the interactive Swagger documentation published by the service (path `/docs`).
 {.ref-note}
 
 ## Glossary {#glossary}

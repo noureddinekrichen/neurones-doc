@@ -1,0 +1,33 @@
+{{- /* Data-flow diagram: an ordered list of steps joined by labelled arrows (pure HTML + CSS, CSP-safe).
+       Usage — one item per line inside the shortcode:
+         {{< flow label="How telemetry reaches Neurons" >}}
+         app | Your PHP application | ext-opentelemetry + Composer auto-instrumentation
+         → OTLP over HTTP (protobuf)
+         platform | Neurons OpenTelemetry Collector | Converts to OTLP/JSON and adds the ingestion token
+         {{< /flow >}}
+       - Step line: `owner | title | description` — owner is `app` (your side) or `platform` (Neurons side);
+         the description is optional and may contain inline Markdown (`code`).
+       - Arrow line: starts with `→` or `->`, followed by an optional transport label. */ -}}
+{{- $page := .Page -}}
+<ol class="flow" aria-label="{{ .Get "label" | default (i18n "flowLabel") }}">
+{{- range split (strings.TrimSpace .Inner) "\n" }}
+  {{- $line := strings.TrimSpace . }}
+  {{- if not $line }}{{ continue }}{{ end }}
+  {{- if or (strings.HasPrefix $line "→") (strings.HasPrefix $line "->") }}
+    {{- $label := strings.TrimSpace (strings.TrimLeft "→->" $line) }}
+  <li class="flow-link"><span class="flow-arrow" aria-hidden="true"></span>{{ with $label }}<span class="flow-label">{{ $page.RenderString . }}</span>{{ end }}</li>
+  {{- else }}
+    {{- $parts := split $line "|" }}
+    {{- $owner := strings.TrimSpace (index $parts 0) }}
+    {{- $title := strings.TrimSpace (index $parts 1) }}
+    {{- $desc := "" }}{{ if gt (len $parts) 2 }}{{ $desc = strings.TrimSpace (index $parts 2) }}{{ end }}
+  <li class="flow-node flow-node-{{ $owner }}">
+    <span class="flow-owner">{{ i18n (printf "flowOwner_%s" $owner) }}</span>
+    <span class="flow-title">{{ $page.RenderString $title }}</span>
+    {{- with $desc }}
+    <span class="flow-desc">{{ $page.RenderString . }}</span>
+    {{- end }}
+  </li>
+  {{- end }}
+{{- end }}
+</ol>

@@ -19,12 +19,32 @@ disableHugoGeneratorInject = true
   contentDir = "content/en"
   weight = 1
   title = "Neurons Docs"
+  # Sidebar "Getting Started" categories (can be nested with `parent`). Pages join one with front matter:
+  #   menus: { onboarding: { parent: opentelemetry, weight: 10 } }
+  [[languages.en.menus.onboarding]]
+    identifier = "application-onboarding"
+    name = "Application Onboarding"
+    weight = 1
+  [[languages.en.menus.onboarding]]
+    identifier = "opentelemetry"
+    parent = "application-onboarding"
+    name = "OpenTelemetry"
+    weight = 1
 
 [languages.fr]
   label = "Français"
   contentDir = "content/fr"
   weight = 2
   title = "Documentation Neurons"
+  [[languages.fr.menus.onboarding]]
+    identifier = "application-onboarding"
+    name = "Onboarding des applications"
+    weight = 1
+  [[languages.fr.menus.onboarding]]
+    identifier = "opentelemetry"
+    parent = "application-onboarding"
+    name = "OpenTelemetry"
+    weight = 1
 
 [markup.goldmark]
   [markup.goldmark.parser]
@@ -37,6 +57,15 @@ disableHugoGeneratorInject = true
     disable = true    # keep straight quotes, as written
   [markup.goldmark.renderer]
     unsafe = false
+  [markup.goldmark.renderHooks.link]
+    # Keep Markdown links exactly as written (e.g. ../../#otel). Hugo's built-in hook would turn
+    # them into /neurons/... root-relative links.
+    useEmbedded = "never"
+
+[markup.highlight]
+  # Plain <pre><code> for fenced blocks: Chroma's default output uses inline style
+  # attributes, which the Content-Security-Policy (style-src 'self') would block.
+  codeFences = false
 
 [minify.tdewolff.html]
   keepWhitespace = false

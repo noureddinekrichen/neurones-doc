@@ -32,7 +32,7 @@ Neurons expose une API HTTP qui alimente l'ensemble des écrans décrits dans ce
 | Exploitation | 2 | Vérification de santé et export Prometheus, sans authentification. |
 {mono="2"}
 
-Résumé destiné à situer les capacités de la plateforme ; pour le détail technique de chaque paramètre, consulter la documentation Swagger interactive publiée par le service (chemin `/docs`).
+Résumé destiné à situer les capacités de la plateforme. La [référence de l'API](reference/query-api/) liste chaque endpoint avec son chemin et son rôle ; pour le détail technique de chaque paramètre, consulter la documentation Swagger interactive publiée par le service (chemin `/docs`).
 {.ref-note}
 
 ## Glossaire {#glossary}

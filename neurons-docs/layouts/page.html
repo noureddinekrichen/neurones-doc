@@ -1,0 +1,27 @@
+{{- /* Standalone documentation page (e.g. content/<lang>/application-onboarding/php.md).
+       Shares the guide's shell; the right-hand TOC lists the page's ## headings. */ -}}
+{{- define "main" }}
+    <header class="doc-intro">
+      <p class="eyebrow">{{ i18n "eyebrow" }}</p>
+      <h1>{{ .Title }}</h1>
+      {{- with .Params.lede }}
+      <p class="lede">{{ . }}</p>
+      {{- end }}
+    </header>
+    {{- with .Content }}
+
+    <section class="doc-part" id="s-page" data-part="page">
+      {{ . }}
+    </section>
+    {{- end }}
+{{ end }}
+
+{{- define "toc" }}
+      {{- with partial "headings.html" . }}
+      <div class="toc-group active" data-toc-part="page">
+        {{- range . }}
+        <a href="#{{ .id }}">{{ .toc }}</a>
+        {{- end }}
+      </div>
+      {{- end }}
+{{- end }}

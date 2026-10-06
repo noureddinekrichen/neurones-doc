@@ -1,9 +1,20 @@
 {{- /* Relative URL from the current page to a site path, so the output works under /neurons/ or any prefix.
        Usage: partial "url.html" (dict "page" . "path" "assets/images/x.svg")
-       "path" may also be a RelPermalink such as "/neurons/fr/" (the base path is stripped). */ -}}
+       "path" may also be a RelPermalink such as "/neurons/fr/" (the base path is stripped).
+       Only climbs up to the folder both URLs share: from /fr/ to /fr/x/ gives "x/". */ -}}
 {{- $base := hugo.Sites.Default.Home.RelPermalink -}}
 {{- $here := strings.TrimPrefix $base .page.RelPermalink -}}
-{{- $up := strings.Repeat (strings.Count "/" $here) "../" -}}
 {{- $target := strings.TrimPrefix $base .path -}}
-{{- $out := cond (eq $target $here) "" (printf "%s%s" $up $target) -}}
+{{- $isDir := or (eq $target "") (strings.HasSuffix $target "/") -}}
+{{- $hs := slice -}}{{- range split $here "/" }}{{ if . }}{{ $hs = $hs | append . }}{{ end }}{{ end -}}
+{{- $ts := slice -}}{{- range split $target "/" }}{{ if . }}{{ $ts = $ts | append . }}{{ end }}{{ end -}}
+{{- $dirs := $ts -}}
+{{- if not $isDir }}{{ $dirs = first (sub (len $ts) 1) $ts }}{{ end -}}
+{{- $common := 0 -}}{{- $stop := false -}}
+{{- range $i, $d := $dirs -}}
+  {{- if and (not $stop) (lt $i (len $hs)) (eq $d (index $hs $i)) }}{{ $common = add $common 1 }}{{ else }}{{ $stop = true }}{{ end -}}
+{{- end -}}
+{{- $rest := after $common $ts -}}
+{{- $out := printf "%s%s" (strings.Repeat (sub (len $hs) $common) "../") (delimit $rest "/") -}}
+{{- if and $isDir (gt (len $rest) 0) }}{{ $out = printf "%s/" $out }}{{ end -}}
 {{- return (cond (eq $out "") "./" $out) -}}

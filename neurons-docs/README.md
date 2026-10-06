@@ -98,6 +98,23 @@ Table settings, written on the line right after the table:
 
 Tables scroll sideways on small screens automatically.
 
+### Getting Started pages (separate pages)
+
+The sidebar's **Getting Started** group lists standalone pages such as `content/en/application-onboarding/php.md`, published at `…/neurons/application-onboarding/php/`. A page joins the group through its front matter:
+
+```yaml
+---
+title: PHP Application Onboarding        # page title (h1)
+linkTitle: PHP                           # label in the sidebar
+menus:
+  onboarding:
+    parent: opentelemetry                # category id (defined in hugo.toml, per language)
+    weight: 10                           # order within the category
+---
+```
+
+Create the same file (same path) in `content/fr/` for the French version. Its `## Heading {#id}` sections appear in the page's right-hand table of contents. Categories are `[[languages.<lang>.menus.onboarding]]` entries in `hugo.toml` (one per language) and can be nested with `parent`: today *Application Onboarding* contains *OpenTelemetry* (PHP, Java, .NET, Node.js, Python) and the *Browser RUM* page. Each level is indented one step in the sidebar. `noindex: true` keeps a page out of search engines; remove it once the page has real content.
+
 ### Interface text
 
 Texts that aren't documentation (search placeholder, "On this page", footer…) are in `i18n/en.toml` and `i18n/fr.toml`. The page title, description and intro sentence are in `content/<language>/_index.md`.

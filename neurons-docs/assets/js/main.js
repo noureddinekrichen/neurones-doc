@@ -21,8 +21,12 @@
   var tocLinks = toArray(document.querySelectorAll('.toc a'));
   var headings = toArray(document.querySelectorAll('main h2[id]'));
 
+  /* only links to sections of this page take part in active-section tracking */
   var navById = {}, tocById = {};
-  navLinks.forEach(function(a){ navById[a.getAttribute('href').slice(1)] = a; });
+  navLinks.forEach(function(a){
+    var href = a.getAttribute('href');
+    if (href.charAt(0) === '#') navById[href.slice(1)] = a;
+  });
   tocLinks.forEach(function(a){ tocById[a.getAttribute('href').slice(1)] = a; });
 
   var currentHeadingId = null;
@@ -30,7 +34,7 @@
   /* ============ Mobile drawer (on desktop the sidebar is always visible) ============ */
   function firstVisibleNavLink(){
     for (var i = 0; i < navLinks.length; i++){
-      if (!navLinks[i].hidden && !navLinks[i].parentNode.hidden) return navLinks[i];
+      if (navLinks[i].offsetParent !== null) return navLinks[i];
     }
     return null;
   }
@@ -39,7 +43,8 @@
     sidebar.classList.add('open');
     overlay.classList.add('open');
     navToggle.setAttribute('aria-expanded', 'true');
-    var target = sidebar.querySelector('.nav-link.active:not([hidden])') || firstVisibleNavLink();
+    var active = sidebar.querySelector('.nav-link.active');
+    var target = (active && active.offsetParent !== null) ? active : firstVisibleNavLink();
     if (target) target.focus({ preventScroll: true });
   }
   function closeSidebar(returnFocus){
@@ -58,21 +63,57 @@
   if (drawerQuery.addEventListener) drawerQuery.addEventListener('change', onDrawerQueryChange);
   else if (drawerQuery.addListener) drawerQuery.addListener(onDrawerQueryChange);
 
+  /* ============ Collapsible groups ============ */
+  /* Every group/category starts open (as rendered by the template). A group the reader closes stays
+     closed, and one they reopen stays open, for the browser session and across pages. */
+  var NAV_STATE_KEY = 'neurons-nav';
+  var navList = document.getElementById('navList');
+  var collapsibles = toArray(navList.querySelectorAll('.nav-group, .nav-sub')).filter(function(node){
+    return node.firstElementChild && node.firstElementChild.tagName === 'BUTTON';
+  });
+  var navState = {};
+  try { navState = JSON.parse(sessionStorage.getItem(NAV_STATE_KEY)) || {}; } catch (err) {}
+  function isOpen(node){
+    return navState[node.getAttribute('data-group')] !== false;
+  }
+  function applyCollapse(){
+    collapsibles.forEach(function(node){
+      var open = isOpen(node);
+      node.classList.toggle('is-collapsed', !open);
+      node.firstElementChild.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+  collapsibles.forEach(function(node){
+    node.firstElementChild.addEventListener('click', function(){
+      navState[node.getAttribute('data-group')] = node.classList.contains('is-collapsed');
+      try { sessionStorage.setItem(NAV_STATE_KEY, JSON.stringify(navState)); } catch (err) {}
+      applyCollapse();
+    });
+  });
+  applyCollapse();
+
   /* ============ Navigation filter ============ */
   /* accent-insensitive so "evenements" matches "Événements" */
   function normalize(s){
     s = s.toLowerCase();
-    return s.normalize ? s.normalize('NFD').replace(/[̀-ͯ]/g, '') : s;
+    return s.normalize ? s.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : s;
   }
   navSearch.addEventListener('input', function(){
     var q = normalize(navSearch.value.trim());
     var anyVisible = false;
+    navList.classList.toggle('is-filtering', !!q);  /* matches are shown even in closed groups */
     navGroups.forEach(function(group){
       var groupHasMatch = false;
       toArray(group.querySelectorAll('.nav-link')).forEach(function(a){
-        var match = !q || normalize(a.textContent).indexOf(q) !== -1;
+        /* data-search: extra words a link answers to (e.g. its sidebar group and category) */
+        var text = a.textContent + ' ' + (a.getAttribute('data-search') || '');
+        var match = !q || normalize(text).indexOf(q) !== -1;
         a.hidden = !match;
         if (match) groupHasMatch = true;
+      });
+      /* a sub-category label is shown only while one of its links is */
+      toArray(group.querySelectorAll('.nav-sub')).forEach(function(sub){
+        sub.hidden = !sub.querySelector('.nav-link:not([hidden])');
       });
       group.hidden = !groupHasMatch;
       if (groupHasMatch) anyVisible = true;
@@ -148,12 +189,31 @@
   });
 
   /* ============ Active section tracking ============ */
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var toc = document.getElementById('toc');
+
+  /* Scroll a panel (sidebar or TOC, which scroll on their own) so that `el` is comfortably in view.
+     Only the panel moves, never the page. */
+  function keepInView(panel, el){
+    if (!panel || !el || el.offsetParent === null) return;
+    var p = panel.getBoundingClientRect(), r = el.getBoundingClientRect(), margin = 40;
+    if (r.top >= p.top + margin && r.bottom <= p.bottom - margin) return;
+    var top = panel.scrollTop + (r.top - p.top) - p.height / 3;
+    if (panel.scrollTo) panel.scrollTo({ top: top, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+    else panel.scrollTop = top;
+  }
+
+  /* Only links to sections of this page are (de)highlighted here; a link to the current page
+     (e.g. PHP in the sidebar while reading the PHP page) keeps its highlight. */
+  var trackedNav = Object.keys(navById).map(function(id){ return navById[id]; });
   function setActiveHeading(id){
     currentHeadingId = id;
-    navLinks.forEach(function(a){ a.classList.remove('active'); a.removeAttribute('aria-current'); });
+    trackedNav.forEach(function(a){ a.classList.remove('active'); a.removeAttribute('aria-current'); });
     tocLinks.forEach(function(a){ a.classList.remove('active'); a.removeAttribute('aria-current'); });
     if (navById[id]) { navById[id].classList.add('active'); navById[id].setAttribute('aria-current', 'location'); }
     if (tocById[id]) { tocById[id].classList.add('active'); tocById[id].setAttribute('aria-current', 'location'); }
+    keepInView(sidebar, navById[id]);
+    keepInView(toc, tocById[id]);
   }
   function setActivePart(part){
     tocGroups.forEach(function(g){
@@ -164,7 +224,9 @@
   /* The active section is the last heading that has scrolled past the top quarter of the
      viewport. Computed from scroll position (not intersection events) so it is correct in
      both scroll directions, after anchor jumps and on reload; the TOC always shows the part
-     that contains the active heading. */
+     that contains the active heading. At the very bottom of the page, short final sections
+     can never reach that line: there the linked section (URL #hash) if visible, otherwise
+     the last visible heading, is active. */
   function headingPart(h){
     var part = h.closest ? h.closest('.doc-part') : null;
     return part ? part.getAttribute('data-part') : null;
@@ -176,6 +238,16 @@
     for (var i = 0; i < headings.length; i++){
       if (headings[i].getBoundingClientRect().top <= threshold) current = headings[i];
       else break;
+    }
+    var doc = document.documentElement;
+    if (window.innerHeight + window.pageYOffset >= doc.scrollHeight - 2){
+      var visible = headings.filter(function(h){
+        var top = h.getBoundingClientRect().top;
+        return top >= 0 && top < window.innerHeight;
+      });
+      var target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+      if (target && visible.indexOf(target) !== -1) current = target;
+      else if (visible.length) current = visible[visible.length - 1];
     }
     if (current.id !== currentHeadingId){
       setActiveHeading(current.id);
@@ -192,5 +264,14 @@
   window.addEventListener('resize', scheduleUpdate);
   window.addEventListener('hashchange', scheduleUpdate);
   window.addEventListener('load', scheduleUpdate);
+  /* Smooth scrolling (see main.css) starts with the reader's first interaction: in-page link clicks
+     always follow one, while the browser's initial jump to a #section never does, so it stays instant. */
+  function enableSmoothScroll(){
+    document.documentElement.classList.add('smooth-scroll');
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function(t){ window.removeEventListener(t, enableSmoothScroll, true); });
+  }
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function(t){ window.addEventListener(t, enableSmoothScroll, { capture: true, passive: true }); });
   updateActiveFromScroll();
+  /* a page highlighted in the sidebar by the template (e.g. PHP on its own page) */
+  keepInView(sidebar, sidebar.querySelector('.nav-link[aria-current="page"]'));
 })();

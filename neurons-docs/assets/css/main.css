@@ -28,7 +28,9 @@
 }
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none!important}
-html{scroll-behavior:smooth}
+/* Smooth scrolling for in-page navigation only: main.js adds .smooth-scroll on the reader's first
+   interaction, so opening a link to a #section jumps straight there instead of animating through the page. */
+html.smooth-scroll{scroll-behavior:smooth}
 /* Offset anchor targets below the sticky top bar. Applied to the targets (scroll-margin) rather than
    html{scroll-padding-top}: with scroll-padding, focusing anything inside the sticky header or sidebar
    made the browser scroll the page to "reveal" it. */
@@ -81,12 +83,28 @@ main[tabindex="-1"]:focus{outline:none}
 .sidebar{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hh));align-self:start;height:calc(100vh - var(--hh));overflow-y:auto;padding:28px 22px 48px 28px;border-right:1px solid var(--line);scrollbar-width:thin;scrollbar-color:transparent transparent;scrollbar-gutter:stable}
 .sidebar:hover,.sidebar:focus-within{scrollbar-color:var(--line-2) transparent}
 .nav-group{margin-bottom:22px}
-.nav-group-title{display:flex;align-items:center;gap:8px;padding:0 0 6px;font-family:var(--brandfont);font-size:15px;font-weight:700;color:var(--heading)}
+.nav-group-title{display:flex;align-items:center;gap:8px;width:100%;margin:0;padding:0 0 6px;border:0;background:none;text-align:left;font-family:var(--brandfont);font-size:15px;font-weight:700;color:var(--heading)}
 .nav-group-title .dot{width:6px;height:6px;border-radius:50%;background:var(--grad)}
 .nav-link{position:relative;display:block;margin-left:2px;padding:6px 10px 6px 16px;border-left:1px solid var(--line);font-size:15px;line-height:1.45;color:var(--muted);text-decoration:none;transition:color .12s}
 .nav-link:hover{color:var(--heading)}
 .nav-link.active{color:var(--accent);font-weight:500;border-left-color:transparent}
 .nav-link.active::before{content:"";position:absolute;left:-1px;top:4px;bottom:4px;width:2px;border-radius:2px;background:var(--grad)}
+/* Categories inside a group (e.g. Getting Started › Application Onboarding › OpenTelemetry › PHP):
+   a non-clickable label with the link metrics; each nesting level is indented one 16px step. */
+.nav-sub-title{display:flex;align-items:center;gap:8px;width:calc(100% - 2px);margin:0 0 0 2px;padding:6px 10px 6px 16px;border:0;border-left:1px solid var(--line);background:none;text-align:left;font-size:15px;line-height:1.45;font-weight:500;color:var(--text)}
+.nav-sub .nav-link{padding-left:32px}
+.nav-sub .nav-sub .nav-sub-title{padding-left:32px}
+.nav-sub .nav-sub .nav-link{padding-left:48px}
+/* Collapsible groups (only with JavaScript: early.js sets html.js; without it everything stays open).
+   The title button keeps the heading look; a chevron on the right shows the state. */
+.nav-toggle-icon{display:none;flex:0 0 auto;margin-left:auto;color:var(--faint);transition:transform .15s}
+.js .nav-toggle-icon{display:block}
+.js .nav-group-title,.js .nav-sub-title{cursor:pointer}
+.js .nav-group-title:hover .nav-toggle-icon,.js .nav-sub-title:hover .nav-toggle-icon{color:var(--heading)}
+.js .is-collapsed>button .nav-toggle-icon{transform:rotate(-90deg)}
+.js .is-collapsed>.nav-items{display:none}
+.js .nav-group.is-collapsed{margin-bottom:14px}
+.js #navList.is-filtering .is-collapsed>.nav-items{display:block}  /* search shows every match */
 .nav-empty{padding:12px 0;color:var(--faint);font-size:14.5px}
 
 .content{min-width:0;padding:44px 56px 80px}
@@ -108,11 +126,31 @@ main[tabindex="-1"]:focus{outline:none}
 .content strong{color:var(--heading);font-weight:600}
 .content code,.mono{font-family:var(--mono);font-size:.88em}
 .content code{padding:2px 6px;border-radius:4px;background:var(--soft-2);color:var(--heading)}
+.content pre{margin:0 0 20px;padding:14px 18px;overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--soft);line-height:1.55}
+.content pre code{padding:0;border-radius:0;background:none;font-size:13.5px;white-space:pre}
 
 .content ol.steps{list-style:none;counter-reset:s;padding:0;margin:20px auto 22px}
 .steps li{counter-increment:s;position:relative;margin:0;padding:0 0 16px 46px}
 .steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13.5px;font-weight:600;color:#fff;background:var(--grad)}
 .steps li:not(:last-child)::after{content:"";position:absolute;left:13.5px;top:34px;bottom:4px;width:1px;background:var(--line)}
+
+/* Data-flow diagram (flow shortcode): numbered step cards joined by labelled arrows */
+.content ol.flow{list-style:none;counter-reset:flow;max-width:640px;margin:24px 0 28px;padding:0}
+.content .flow li{margin:0}
+.flow-node{counter-increment:flow;position:relative;display:flex;flex-direction:column;gap:3px;padding:14px 18px 15px 60px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.flow-node::before{content:counter(flow);position:absolute;left:16px;top:15px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13.5px;font-weight:600;color:#fff;background:var(--table-head)}
+.flow-node-app{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.flow-node-app::before{background:var(--grad)}
+.flow-node-platform{background:var(--soft)}
+.flow-owner{font-size:11.5px;line-height:1.4;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.flow-node-app .flow-owner{color:var(--accent)}
+.flow-title{font-family:var(--brandfont);font-size:16.5px;line-height:1.35;font-weight:700;color:var(--heading)}
+.flow-desc{font-size:14.5px;line-height:1.5;color:var(--muted)}
+.flow-link{display:flex;align-items:center;gap:14px;min-height:46px;padding-left:29px}
+.flow-arrow{position:relative;flex:0 0 2px;align-self:stretch;margin:2px 0 8px;background:var(--line-2)}
+.flow-arrow::after{content:"";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);border-style:solid;border-width:8px 6px 0;border-color:var(--line-2) transparent transparent}
+.flow-label{font-family:var(--mono);font-size:12.5px;line-height:1.4;color:var(--muted);padding:3px 9px;border-radius:6px;background:var(--soft-2)}
+.content .flow-label code{padding:0;background:none;font-size:inherit;color:var(--heading)}
 
 .callout{display:flex;gap:16px;margin:24px auto;padding:18px 22px;border:1px solid var(--line);border-left:4px solid var(--tip);border-radius:0 8px 8px 0;background:var(--tip-soft)}
 .callout .icon{flex:0 0 auto;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#fff;color:#0A84C8}
@@ -163,4 +201,4 @@ main[tabindex="-1"]:focus{outline:none}
   .callout{padding:16px}
 }
 @media (max-width:520px){.brand .word{display:none}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}html,html.smooth-scroll{scroll-behavior:auto}}

@@ -3,6 +3,9 @@
 <title>{{ .Title }} · {{ .Site.Title }}</title>
 <meta name="description" content="{{ .Description }}">
 <meta name="theme-color" content="#5B3DF5">
+{{- if .Params.noindex }}
+<meta name="robots" content="noindex">
+{{- end }}
 <link rel="canonical" href="{{ .Permalink }}">
 {{- range .AllTranslations }}
 <link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}">
@@ -18,10 +21,12 @@
 {{- /* CSS/JS get a content hash in their file name, so browsers never keep a stale copy after an update. */}}
 {{- $css := resources.Get "css/main.css" | resources.Copy "assets/css/main.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ partial "url.html" (dict "page" $ "path" $css.RelPermalink) }}">
-{{- if eq .Language.Lang hugo.Sites.Default.Language.Lang }}
-{{- /* Default-language page only: honour a saved preference for another language. */}}
-{{- $redirect := resources.Get "js/lang-redirect.js" | resources.Copy "assets/js/lang-redirect.js" | minify | fingerprint }}
-<script src="{{ partial "url.html" (dict "page" $ "path" $redirect.RelPermalink) }}"></script>
-{{- end }}
+{{- /* early.js: sets html.js before the first paint; on default-language pages it also applies a saved
+       language preference (data-<lang>: where this page lives in each other language). */}}
+{{- $early := resources.Get "js/early.js" | resources.Copy "assets/js/early.js" | minify | fingerprint }}
+<script src="{{ partial "url.html" (dict "page" $ "path" $early.RelPermalink) }}"
+  {{- if eq .Language.Lang hugo.Sites.Default.Language.Lang }}
+  {{- range .Translations }} data-{{ .Language.Lang }}="{{ partial "url.html" (dict "page" $ "path" .RelPermalink) }}"{{ end }}
+  {{- end }}></script>
 {{- $js := resources.Get "js/main.js" | resources.Copy "assets/js/main.js" | minify | fingerprint }}
 <script src="{{ partial "url.html" (dict "page" $ "path" $js.RelPermalink) }}" defer></script>

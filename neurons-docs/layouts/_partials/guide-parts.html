@@ -1,0 +1,2 @@
+{{- /* The guide parts of the current language (content/<lang>/guide/*.md), in order. */ -}}
+{{- return (where site.RegularPages "Section" "guide").ByWeight -}}

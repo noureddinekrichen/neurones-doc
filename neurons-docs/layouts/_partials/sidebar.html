@@ -1,0 +1,39 @@
+{{- /* Left navigation.
+       - One group per guide part, linking to its ## sections on the guide page.
+       - The "Getting Started" group is inserted right after the first part (Introduction).
+         Its entries come from the "onboarding" menu (rendered by nav-menu.html, any depth): categories are
+         defined in hugo.toml, pages join them with `menus: { onboarding: { parent: <category id> } }` in their front matter.
+       - Standalone pages can also be listed under a guide part, after its section links, through a menu
+         named after the part: `menus: { ref: { weight: 10 } }` adds the page to the "ref" (Reference) group.
+       On pages other than the guide, section links point back to the guide (…/#id).
+       Groups and categories are collapsible (button title + .nav-items). They all start open; main.js
+       then applies the reader's own choices (a closed group stays closed for the session). */ -}}
+{{- $page := . -}}
+{{- $guide := cond .IsHome "" (partial "url.html" (dict "page" . "path" site.Home.RelPermalink)) -}}
+<nav class="sidebar" id="sidebar" aria-label="{{ i18n "navLabel" }}">
+    <div id="navList">
+      {{- range $i, $p := partial "guide-parts.html" . }}
+      {{- $open := and $page.IsHome (eq $i 0) }}
+      <div class="nav-group" data-group="{{ $p.Params.part }}">
+        <button type="button" class="nav-group-title" aria-expanded="true" aria-controls="nav-{{ $p.Params.part }}"><span class="dot"></span>{{ $p.Params.navTitle | default $p.Title }}{{ partial "nav-toggle-icon.html" }}</button>
+        <div class="nav-items" id="nav-{{ $p.Params.part }}">
+          {{- range $j, $h := partial "headings.html" $p }}
+          <a class="nav-link{{ if and $open (eq $j 0) }} active{{ end }}" href="{{ $guide }}#{{ $h.id }}">{{ $h.nav }}</a>
+          {{- end }}
+          {{- with index site.Menus $p.Params.part }}
+          {{- partial "nav-menu.html" (dict "entries" . "page" $page "trail" ($p.Params.navTitle | default $p.Title)) }}
+          {{- end }}
+        </div>
+      </div>
+      {{- if and (eq $i 0) site.Menus.onboarding }}
+      <div class="nav-group" data-group="getting-started">
+        <button type="button" class="nav-group-title" aria-expanded="true" aria-controls="nav-getting-started"><span class="dot"></span>{{ i18n "gettingStarted" }}{{ partial "nav-toggle-icon.html" }}</button>
+        <div class="nav-items" id="nav-getting-started">
+          {{- partial "nav-menu.html" (dict "entries" site.Menus.onboarding "page" $page "trail" (i18n "gettingStarted")) }}
+        </div>
+      </div>
+      {{- end }}
+      {{- end }}
+    </div>
+    <div class="nav-empty" id="navEmpty" role="status" hidden>{{ i18n "noResults" }}</div>
+  </nav>
