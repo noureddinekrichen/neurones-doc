@@ -139,7 +139,7 @@
   document.addEventListener('keydown', function(e){
     if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !isEditable(document.activeElement)){
       e.preventDefault();
-      navSearch.focus();
+      navSearch.focus({ preventScroll: true });
     } else if (e.key === 'Escape'){
       if (isLangMenuOpen()) closeLangMenu(true);
       else if (isSidebarOpen()) closeSidebar(true);

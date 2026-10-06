@@ -28,7 +28,11 @@
 }
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none!important}
-html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + var(--hh) + 20px)}
+html{scroll-behavior:smooth}
+/* Offset anchor targets below the sticky top bar. Applied to the targets (scroll-margin) rather than
+   html{scroll-padding-top}: with scroll-padding, focusing anything inside the sticky header or sidebar
+   made the browser scroll the page to "reveal" it. */
+.content [id]{scroll-margin-top:calc(env(safe-area-inset-top,0px) + var(--hh) + 20px)}
 body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.7 var(--font);-webkit-font-smoothing:antialiased}
 a{color:var(--link)}
 button,input{font:inherit;color:inherit}
