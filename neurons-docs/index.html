@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Application Monitoring Guide · Neurons Docs</title>
+<meta name="description" content="Documentation for Neurons application monitoring: services, traces, business transactions, alerting and administration.">
+<meta name="theme-color" content="#5B3DF5">
+<link rel="canonical" href="https://docs.confoline.com/neurons/">
+<link rel="alternate" hreflang="en" href="https://docs.confoline.com/neurons/">
+<link rel="alternate" hreflang="fr" href="https://docs.confoline.com/neurons/fr/">
+<link rel="alternate" hreflang="x-default" href="https://docs.confoline.com/neurons/">
+<link rel="icon" href="assets/images/neurons-app-icon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/images/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/ibm-plex-sans-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/main.css">
+<script src="assets/js/lang-redirect.js"></script>
+<script src="assets/js/main.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button type="button" class="nav-toggle" id="navToggle" aria-label="Open the table of contents" aria-controls="sidebar" aria-expanded="false">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2 4.5H16M2 9H16M2 13.5H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <a class="brand" href="#quest" aria-label="Neurons documentation home">
+    <img src="assets/images/neurons-app-icon.svg" alt="" width="30" height="30">
+    <span class="word" aria-hidden="true">Neurons</span>
+  </a>
+  <span class="topbar-badge">Application Monitoring Guide</span>
+  <div class="lang-dropdown" id="langDropdown">
+    <button type="button" class="lang-current" id="langCurrent" aria-expanded="false" aria-controls="langMenu" aria-label="Language: English">
+      <span class="flag-slot" aria-hidden="true"><svg class="flag-icon" width="18" height="13" viewBox="0 0 60 40"><rect width="60" height="40" fill="#00247D"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#FFFFFF" stroke-width="8"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#CF142B" stroke-width="4"/><path d="M30,0 V40 M0,20 H60" stroke="#FFFFFF" stroke-width="14"/><path d="M30,0 V40 M0,20 H60" stroke="#CF142B" stroke-width="8"/></svg></span>
+      <span class="lang-label" aria-hidden="true">English</span>
+      <svg class="chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <ul class="lang-menu" id="langMenu">
+      <li><a class="lang-option active" href="./" hreflang="en" lang="en" aria-current="page">
+        <svg class="flag-icon" width="18" height="13" viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#00247D"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#FFFFFF" stroke-width="8"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#CF142B" stroke-width="4"/><path d="M30,0 V40 M0,20 H60" stroke="#FFFFFF" stroke-width="14"/><path d="M30,0 V40 M0,20 H60" stroke="#CF142B" stroke-width="8"/></svg>
+        <span>English</span>
+      </a></li>
+      <li><a class="lang-option" href="fr/" hreflang="fr" lang="fr">
+        <svg class="flag-icon" width="18" height="13" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" x="0" fill="#0055A4"/><rect width="1" height="2" x="1" fill="#FFFFFF"/><rect width="1" height="2" x="2" fill="#EF4135"/></svg>
+        <span>Français</span>
+      </a></li>
+    </ul>
+  </div>
+  <div class="search-wrap" role="search">
+    <label class="visually-hidden" for="navSearch">Search the documentation</label>
+    <input id="navSearch" type="text" placeholder="Search…" autocomplete="off" spellcheck="false" aria-controls="sidebar" aria-keyshortcuts="/">
+    <kbd aria-hidden="true">/</kbd>
+  </div>
+</header>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="shell">
+
+  <!-- ============ LEFT NAV ============ -->
+  <nav class="sidebar" id="sidebar" aria-label="Documentation">
+    <div id="navList">
+      <div class="nav-group" data-group="intro">
+        <div class="nav-group-title"><span class="dot"></span>Introduction</div>
+        <a class="nav-link active" href="#quest">What is Neurons?</a>
+        <a class="nav-link" href="#flow">How data arrives</a>
+        <a class="nav-link" href="#concepts">Key concepts</a>
+      </div>
+      <div class="nav-group" data-group="part1">
+        <div class="nav-group-title"><span class="dot"></span>Application Monitoring</div>
+        <a class="nav-link" href="#apps">Applications</a>
+        <a class="nav-link" href="#services">Services &amp; dependency map</a>
+        <a class="nav-link" href="#traces">Traces</a>
+        <a class="nav-link" href="#bt">Business transactions</a>
+        <a class="nav-link" href="#bj">Business Journeys</a>
+        <a class="nav-link" href="#errors">Errors</a>
+        <a class="nav-link" href="#db">Database</a>
+      </div>
+      <div class="nav-group" data-group="part2">
+        <div class="nav-group-title"><span class="dot"></span>Observability</div>
+        <a class="nav-link" href="#logs">Logs</a>
+        <a class="nav-link" href="#events">Events</a>
+        <a class="nav-link" href="#rum">User experience (RUM)</a>
+        <a class="nav-link" href="#troubleshoot">Troubleshoot</a>
+      </div>
+      <div class="nav-group" data-group="part3">
+        <div class="nav-group-title"><span class="dot"></span>Alerting</div>
+        <a class="nav-link" href="#health-rules">Health rules</a>
+        <a class="nav-link" href="#notifications">Policies &amp; notifications</a>
+        <a class="nav-link" href="#incidents">Incidents &amp; War Rooms</a>
+      </div>
+      <div class="nav-group" data-group="part4">
+        <div class="nav-group-title"><span class="dot"></span>Administration</div>
+        <a class="nav-link" href="#settings">Settings</a>
+        <a class="nav-link" href="#retention">Data retention</a>
+        <a class="nav-link" href="#otel">OpenTelemetry instrumentation</a>
+        <a class="nav-link" href="#integrations">External integrations</a>
+        <a class="nav-link" href="#k8s">Kubernetes deployment</a>
+        <a class="nav-link" href="#backup">Backup &amp; restore</a>
+      </div>
+      <div class="nav-group" data-group="ref">
+        <div class="nav-group-title"><span class="dot"></span>Reference</div>
+        <a class="nav-link" href="#api">Query API</a>
+        <a class="nav-link" href="#glossary">Glossary</a>
+      </div>
+    </div>
+    <div class="nav-empty" id="navEmpty" role="status" hidden>No results.</div>
+  </nav>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="content" id="content" tabindex="-1">
+
+    <header class="doc-intro">
+      <p class="eyebrow">Product documentation · Confoline</p>
+      <h1>Application Monitoring Guide</h1>
+      <p class="lede">What Neurons monitors, how to read its screens, and how to use it day to day — from the first glance at your services to administering the platform.</p>
+    </header>
+
+    <!-- ============ INTRODUCTION ============ -->
+    <section class="doc-part" id="s-intro" data-part="intro" aria-label="Introduction">
+      <p class="part-eyebrow">Introduction</p>
+
+      <h2 id="quest">What is Neurons?</h2>
+      <p>Neurons is an Application Performance Monitoring (APM) platform. It automatically collects the traces, logs, and performance measurements emitted by your applications, stores them in a single data warehouse, and turns them into actionable dashboards: service health, business transactions, end-user experience, and alerts.</p>
+      <p>The goal is to answer three questions that any team running an application asks constantly: is everything working normally right now, what changed when a problem appeared, and how far back can I go to understand a past incident.</p>
+
+      <h2 id="flow">How data arrives in the platform</h2>
+      <p>Applications, websites, and mobile apps are instrumented with OpenTelemetry, an open standard. This instrumentation continuously sends what is happening to a collector (the OpenTelemetry Collector), which then forwards this data to Neurons.</p>
+      <ol class="steps">
+        <li>Applications and browsers generate <strong>traces</strong> (the step-by-step detail of a request) and <strong>logs</strong>.</li>
+        <li>The OpenTelemetry Collector gathers them and forwards them to the Neurons ingestion service.</li>
+        <li>The ingestion service validates, cleans, and stores this data almost as-is in the data warehouse — very little transformation happens at this stage, to avoid losing anything and to stay fast.</li>
+        <li>Background jobs (<em>workers</em>) then continuously read this data back to compute everything shown on the dashboards: request rate, error rate, response time, the service dependency map, and business transactions.</li>
+        <li>Dashboards query these already-computed results instead of recalculating on every view, which keeps them fast even over long time ranges.</li>
+      </ol>
+      <div class="callout callout-tip">
+        <span class="icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.25" stroke="currentColor" stroke-width="1.4"/><path d="M9 8v4.2M9 5.8v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <p>Nearly all the curves and trends shown on screen (traffic, latency, errors over time) come from these pre-aggregated computations, not from recalculating raw data every time a screen opens. That's what keeps the platform responsive even with months of history.</p>
+      </div>
+
+      <h2 id="concepts">Key concepts</h2>
+      <p>A few terms recur throughout the platform and are worth telling apart before browsing the screens:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col" class="col-26">Term</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Application</strong></td><td>A fully instrumented piece of software (e.g. "VisionApp"). Groups one or more services.</td></tr>
+          <tr><td><strong>Service</strong></td><td>An individual application component that receives requests (an API, a microservice).</td></tr>
+          <tr><td><strong>Trace</strong></td><td>The complete path of a request, from its entry point through every call it triggers.</td></tr>
+          <tr><td><strong>Span</strong></td><td>A single step inside a trace (an HTTP call, a database query, etc.).</td></tr>
+          <tr><td><strong>Business transaction</strong></td><td>A named, tracked-over-time business entry point (e.g. "Login", "Checkout"), automatically detected from recurring traffic.</td></tr>
+          <tr><td><strong>Business Journey</strong></td><td>A conversion funnel that links several pages and business transactions together, to follow a user journey end to end.</td></tr>
+          <tr><td><strong>Event</strong></td><td>An alert or signal generated by the platform, with a lifecycle (open, acknowledged, resolved).</td></tr>
+          <tr><td><strong>Metric</strong></td><td>A measurement aggregated over time — computed by the workers, not sent directly by the applications.</td></tr>
+          <tr><td><strong>RED</strong></td><td>The three baseline indicators monitored for every service: Rate, Errors, Duration (latency).</td></tr>
+          <tr><td><strong>RUM</strong></td><td>Real User Monitoring — measuring users' actual experience in their browser or mobile app.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ============ PART I ============ -->
+    <section class="doc-part" id="s-part1" data-part="part1" aria-label="Application Monitoring">
+      <p class="part-eyebrow">Application Monitoring</p>
+      <p>This part covers the screens used day to day to monitor application behavior. These are the functional equivalent of what other APM platforms call "Application Monitoring".</p>
+
+      <h2 id="apps">Applications — overview</h2>
+      <p>The "Applications" screen is the home page of the APM module. It lists every application that has recently emitted telemetry, along with its number of distinct services and an overall health indicator. It's the starting point for quickly spotting which application deserves your attention before diving into detail.</p>
+      <div class="callout callout-tip">
+        <span class="icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.25" stroke="currentColor" stroke-width="1.4"/><path d="M9 8v4.2M9 5.8v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <p>If no application appears, the most common cause is that no recent telemetry has been received: widen the time window, or check that the OpenTelemetry Collector is actually sending its data to Neurons.</p>
+      </div>
+
+      <h2 id="services">Services and dependency map</h2>
+      <p>The "Services" screen lists every active service with its <strong>RED</strong> indicators (rate, errors, latency) over the selected time window, along with a live throughput chart and an automatically generated health summary. It's the most-visited screen day to day.</p>
+      <p>The service dependency map (<em>Service Map</em>) is built into this screen: it visually shows which service calls which other, with each link carrying a health indicator (healthy, degraded, critical) based on that call's error rate. Each service can also be opened individually to show:</p>
+      <ul>
+        <li>the trend of requests per minute,</li>
+        <li>the trend of errors per minute,</li>
+        <li>latency percentiles (p50, p95, p99…),</li>
+        <li>this service's own database calls (call count, total time, average time),</li>
+        <li>detail per operation (endpoint), with its own RED indicators,</li>
+        <li>an AI-generated health analysis that summarizes in natural language what's happening on the service.</li>
+      </ul>
+
+      <h2 id="traces">Traces</h2>
+      <p>The "Traces" screen lets you search and inspect individual requests rather than aggregates. Each trace is reconstructed as an enriched service graph that distinguishes the types of calls encountered: calls between internal services, database calls, cache, messaging, RPC calls, external providers, and browser-side (frontend) steps.</p>
+      <p>This is the screen to use to understand precisely why a given request was slow or failed: you see the exact sequence of steps, their individual duration, and where the time was actually spent.</p>
+
+      <h2 id="bt">Business Transactions</h2>
+      <p>A business transaction is a named, tracked-over-time application entry point — for example "Login", "Product search", or "Checkout". Unlike services, business transactions aren't declared manually: they are automatically detected by a background job that spots recurring traffic patterns, then registered in a catalog.</p>
+      <p>For each business transaction, the platform lets you view its own health history, its flow map (the services traversed by traces that start with this transaction), and configure dedicated notifications.</p>
+      <h3>Detection rules and groups</h3>
+      <p>Detection rules let you refine or prioritize how traffic is recognized as belonging to one transaction or another, and groups let you control how several related transactions are counted together. A business transaction can also be manually removed (sent to trash) with a configurable grace period before permanent deletion.</p>
+
+      <h2 id="bj">Business Journeys</h2>
+      <p>Business Journeys are conversion funnels that link several steps together — for example: product page → add to cart → checkout → confirmation. They are reconstructed by combining browser-side page views (RUM) with the associated business transactions, which shows, step by step, exactly where users actually abandon their journey.</p>
+
+      <h2 id="errors">Errors</h2>
+      <p>The "Errors" screen groups failing traces by <strong>signature</strong> — meaning by similar error type — rather than listing every occurrence individually. This lets you immediately see which errors are the most frequent over the period, then open a representative example of each signature to investigate it.</p>
+
+      <h2 id="db">Database</h2>
+      <p>The "Database" screen groups all outbound database calls by normalized query signature (the same query with different parameters counts as a single signature). It shows call volume, total time spent, and average time per call, which makes it easy to quickly spot the most expensive queries.</p>
+    </section>
+
+    <!-- ============ PART II ============ -->
+    <section class="doc-part" id="s-part2" data-part="part2" aria-label="Extended Observability">
+      <p class="part-eyebrow">Extended Observability</p>
+      <p>Beyond application monitoring itself, Neurons also covers application logs, real end-user experience, and a dedicated workspace for cross-cutting incident investigation.</p>
+
+      <h2 id="logs">Logs</h2>
+      <p>The "Logs" screen gives access to recent application logs, filterable by severity level (info, warning, error, etc.) and by time window. It's designed to be used alongside traces: a trace shows how a request unfolded, logs provide the textual detail the application chose to write at a given moment.</p>
+
+      <h2 id="events">Events</h2>
+      <p>The "Observability Event Center" centralizes every event generated by the platform: a threshold breach on a service, a health rule violation, etc. Each event has a severity and follows an explicit lifecycle:</p>
+      <ul>
+        <li><strong>Open</strong> — the event was just detected and hasn't been handled yet.</li>
+        <li><strong>Acknowledged</strong> — someone has taken ownership of the investigation.</li>
+        <li><strong>Resolved</strong> — the problem is fixed; only from this point does an event become eligible for automatic purging.</li>
+        <li><strong>Suppressed</strong> — the event is explicitly set aside, for example because it's known and has no impact.</li>
+      </ul>
+      <p>An open or acknowledged event is never automatically purged, no matter its age — only the retention of resolved events is configurable.</p>
+
+      <h2 id="rum">User Experience (RUM)</h2>
+      <p>This screen, labeled "Browser Performance" in the interface, measures the real experience of a web application's visitors (Real User Monitoring). It combines several types of analysis:</p>
+      <ul>
+        <li><strong>Web Vitals</strong> — the standard perceived-performance indicators: LCP, INP, CLS, FCP, and TTFB, with percentiles and a good / needs improvement / poor breakdown.</li>
+        <li><strong>Load time distribution</strong> — a histogram of page load durations with percentile markers.</li>
+        <li><strong>Sessions and replay</strong> — every user session can be reconstructed as a chronological journey, and some sessions have a replayable recording.</li>
+        <li><strong>Frustration signals</strong> — automatic detection of rage clicks, dead clicks, and error clicks, which reveal a degraded experience even without a visible technical error.</li>
+        <li><strong>Geographic and device breakdown</strong> — browser, operating system, device, or geographic region.</li>
+        <li><strong>Correlation with business transactions</strong> — the ability to see which backend business transactions are triggered by a given page, and vice versa.</li>
+      </ul>
+
+      <h2 id="troubleshoot">Troubleshoot</h2>
+      <p>The "Troubleshoot" screen is a cross-cutting workspace for investigating an ongoing problem, organized into four tabs:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col" class="col-30">Tab</th><th scope="col">What it shows</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Slow Response Times</strong></td><td>Breakdown of requests by latency bucket (normal, slow, very slow, stalled) and the main contributors to those slowdowns.</td></tr>
+          <tr><td><strong>Errors</strong></td><td>The dominant error signatures over the selected window, with their trend.</td></tr>
+          <tr><td><strong>Health Rule Violations</strong></td><td>Health rules currently in violation, with the context needed to investigate.</td></tr>
+          <tr><td><strong>War Rooms</strong></td><td>Manual tracking of open incidents, with AI-generated postmortem reports.</td></tr>
+        </tbody>
+      </table></div>
+      <p>A "comparison" mode lets you contrast the current time window against the equivalent previous window, which helps distinguish normal variation from a genuine degradation. Any identified item can be opened directly in the Traces, Errors, or Logs screens, already filtered to the right context.</p>
+    </section>
+
+    <!-- ============ PART III ============ -->
+    <section class="doc-part" id="s-part3" data-part="part3" aria-label="Alerting &amp; Notifications">
+      <p class="part-eyebrow">Alerting &amp; Notifications</p>
+      <p>The Alerting module brings together everything that lets the platform warn a team rather than just display numbers: threshold definitions, notification channels, and manual incident tracking. The "Alerting" screen is organized into six tabs: Overview, Rules, Alerts, Incidents, Policies, Destinations, Templates.</p>
+
+      <h2 id="health-rules">Health Rules</h2>
+      <p>A health rule defines a threshold on an indicator (for example: error rate above 20%, or latency above 1500&nbsp;ms), evaluated over a given scope (application, environment, service). When a rule is violated, it generates an event, visible both in the Events screen and in the Troubleshoot "Health Rule Violations" tab.</p>
+      <div class="callout callout-tip">
+        <span class="icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.25" stroke="currentColor" stroke-width="1.4"/><path d="M9 8v4.2M9 5.8v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <p>To avoid false alarms on anecdotal traffic, a minimum request-volume threshold is applied before a latency or error-rate rule is evaluated.</p>
+      </div>
+
+      <h2 id="notifications">Policies, destinations, and templates</h2>
+      <p>Three building blocks work together to turn an event into an actual notification:</p>
+      <ul>
+        <li><strong>Destinations</strong> — the channels a notification can be sent to: email, Slack webhook, Microsoft Teams webhook, generic webhook, or a REST API call. Each destination can be tested before being used in production.</li>
+        <li><strong>Templates</strong> — a notification's content and formatting, reusable across policies.</li>
+        <li><strong>Policies</strong> — the rule that links a trigger condition to one or more destinations and a template.</li>
+      </ul>
+
+      <h2 id="incidents">Incidents and War Rooms</h2>
+      <p>An incident can be opened manually as soon as a team starts investigating a problem, independently of automatic events. It groups the affected services, a status (open / resolved), and free-form notes. The Troubleshoot "War Rooms" tab is where these incidents are tracked, and it offers AI-generated postmortem report generation once the incident is resolved.</p>
+    </section>
+
+    <!-- ============ PART IV ============ -->
+    <section class="doc-part" id="s-part4" data-part="part4" aria-label="Administration &amp; Operations">
+      <p class="part-eyebrow">Administration &amp; Operations</p>
+      <p>This part is for the people responsible for the platform's own proper operation: configuration, data retention, application instrumentation, external integrations, deployment, and backup.</p>
+
+      <h2 id="settings">Settings</h2>
+      <p>The "Settings" page brings together five configuration areas, each as a clickable card:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col" class="col-30">Card</th><th scope="col">Role</th></tr></thead>
+        <tbody>
+          <tr><td><strong>OpenTelemetry Collector</strong></td><td>Manage the Collector configurations pushed to the agents installed on your infrastructure.</td></tr>
+          <tr><td><strong>Database Configuration</strong></td><td>Switch and manage the active Vertica / PostgreSQL / Oracle data sources.</td></tr>
+          <tr><td><strong>Data Retention</strong></td><td>Configure how long each data category is kept (details below).</td></tr>
+          <tr><td><strong>External CMDB Integration</strong></td><td>Connect and synchronize asset records with an external CMDB.</td></tr>
+          <tr><td><strong>External Event Management</strong></td><td>Forward the platform's events to an external incident management tool.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="retention">Data Retention</h2>
+      <p>Data retention determines how long each telemetry category is kept before automatic deletion — a trade-off between storage cost and how far back you can investigate. It's configured separately for each category, since their usefulness over time isn't the same:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Category</th><th scope="col">Default</th><th scope="col">Range</th><th scope="col">Why</th></tr></thead>
+        <tbody>
+          <tr><td>Spans (raw traces)</td><td class="mono">30 d</td><td class="mono">1–90 d</td><td>High-volume; mostly useful in the first days/weeks to investigate a specific incident.</td></tr>
+          <tr><td>Logs</td><td class="mono">30 d</td><td class="mono">1–90 d</td><td>Same profile as raw traces.</td></tr>
+          <tr><td>Metrics — 1 minute</td><td class="mono">15 d</td><td class="mono">1–30 d</td><td>Fine-grained analysis, used beyond a week during an in-depth investigation.</td></tr>
+          <tr><td>Metrics — 1 hour</td><td class="mono">90 d</td><td class="mono">7–180 d</td><td>Month-over-month trend comparisons.</td></tr>
+          <tr><td>Metrics — 1 day</td><td class="mono">400 d</td><td class="mono">30–730 d</td><td>Year-over-year comparisons.</td></tr>
+          <tr><td>Resolved events</td><td class="mono">90 d</td><td class="mono">1–730 d</td><td>Open or acknowledged events are never purged, no matter their age.</td></tr>
+        </tbody>
+      </table></div>
+      <p>For each area, the page shows a plain-language description, a real usage indicator (row count and estimated size), the day-count setting, an immediate-purge button (with confirmation), and a history of past purges.</p>
+      <div class="callout callout-tip">
+        <span class="icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.25" stroke="currentColor" stroke-width="1.4"/><path d="M9 8v4.2M9 5.8v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <p>Disk size is an estimate; if it isn't available for a table, the row count is still shown, with an explicit note that the size is unknown rather than showing a false value.</p>
+      </div>
+      <p>An automatic purge runs once a day and applies the settings configured for each area. A purge can also be triggered manually at any time; either way, the action is logged with the date, the number of rows deleted, and the trigger source.</p>
+
+      <h2 id="otel">Application Instrumentation (OpenTelemetry)</h2>
+      <p>For an application to appear in Neurons, it must be instrumented with OpenTelemetry and configured to export its traces and logs to the Collector. This section covers a common point of attention once basic instrumentation is in place: capturing HTTP headers and, more rarely, request/response bodies.</p>
+      <h3>Capturing HTTP headers</h3>
+      <p>For security, OpenTelemetry captures no HTTP headers by default — headers frequently contain sensitive information (tokens, session cookies). Capture must be explicitly enabled, separately for inbound and outbound requests, and separately for the request and the response. This is done via environment variables for most backend languages; on the browser side, the same explicit list is declared in the instrumentation's JavaScript configuration.</p>
+      <div class="callout callout-warn">
+        <span class="icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5L16.3 15.2H1.7L9 2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 7.3v3.6M9 12.9v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <p>Whatever the language, the same rule applies: never capture "all headers" — always use an explicit list, and always exclude authentication headers and cookies.</p>
+      </div>
+      <h3>Capturing request and response bodies</h3>
+      <p>OpenTelemetry doesn't natively capture request or response content (the body) — only their size in bytes. Capturing the actual content requires custom instrumentation, enabled only for explicitly chosen routes, with two rules to always follow: limit the captured size, and mask sensitive fields before sending anything — there's no undoing it once the data has been exported.</p>
+
+      <h2 id="integrations">External Integrations</h2>
+      <p>Two integrations connect Neurons to the rest of the operations ecosystem:</p>
+      <ul>
+        <li><strong>External CMDB</strong> — synchronizes the consolidated list of applications, services, and business transactions with an external configuration management database.</li>
+        <li><strong>External event management</strong> — forwards the events generated by Neurons to an external incident management tool.</li>
+      </ul>
+
+      <h2 id="k8s">Kubernetes Deployment</h2>
+      <p>Neurons deploys as three independent components, each with its own image, grouped in the same Kubernetes namespace:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Component</th><th scope="col">Role</th><th scope="col">Scaling</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">apm-ingest</td><td>Receives telemetry, runs the compute workers, and serves the query API.</td><td>The ingestion/query service scales horizontally; the 3 background workers stay single-instance.</td></tr>
+          <tr><td class="mono">neurones-backend</td><td>Control API: authentication, CMDB, Collector administration, real-time events.</td><td>Single instance.</td></tr>
+          <tr><td class="mono">neurones-frontend</td><td>Web application (dashboards, topology, settings), Next.js.</td><td>Scales horizontally.</td></tr>
+        </tbody>
+      </table></div>
+      <p>All three components rely on an external Vertica database and a small shared PostgreSQL control database. Both must exist and be reachable before starting the deployment.</p>
+      <h3>Things to watch before a first deployment</h3>
+      <ul>
+        <li>A StorageClass supporting <strong>ReadWriteMany</strong> access is required for the shared GeoIP database volume — many default cloud storage classes (EBS, for example) don't allow it.</li>
+        <li>The GeoIP database (MaxMind GeoLite2) isn't shipped in the published image for licensing reasons: each customer must generate their own license key.</li>
+        <li>The <span class="mono">neurones-backend</span> PostgreSQL schema isn't applied automatically in production — an <span class="mono">alembic upgrade head</span> migration must be run explicitly before the first startup.</li>
+        <li>The Vertica schema isn't applied automatically either: all migrations must be applied before apm-ingest's first startup.</li>
+        <li><span class="mono">neurones-backend</span> only accepts origins explicitly listed in its CORS configuration; forgetting this results in a frontend that renders but whose API calls all fail silently.</li>
+        <li><span class="mono">neurones-frontend</span>'s public URLs (API and WebSocket) are baked in at image build time, not at container startup.</li>
+        <li>The ingestion buffer is in-memory only, with no durable queue behind it: size memory with headroom, and allow enough shutdown grace time during updates.</li>
+        <li>The ingestion token is a single shared secret, not scoped per customer: treat it as sensitive and rotate it if it's ever exposed.</li>
+      </ul>
+      <p>Once configured, a single script (<span class="mono">deploy-neurons-apm.sh</span>) handles the entire deployment, then waits until everything is ready. It can safely be re-run after a configuration change.</p>
+
+      <h2 id="backup">Backup and Restore</h2>
+      <p>All of Neurons's data lives in a single Vertica database, called the "Data Lake". Protecting this one database means protecting the entire system — no other copy exists anywhere else.</p>
+      <h3>What to know before trusting a backup</h3>
+      <ul>
+        <li><strong>Data "in flight" isn't covered.</strong> Telemetry received but not yet written to the database is lost if the ingestion service stops abruptly.</li>
+        <li><strong>The restore point is that of the last successful backup.</strong> Anything ingested between the last backup and the incident is permanently lost.</li>
+      </ul>
+      <p>Three destination types are supported: S3-compatible object storage (recommended in production), an NFS network share, or local disk.</p>
+      <h3>Restore procedure, in brief</h3>
+      <ol class="steps">
+        <li>Assess the extent of the damage — when in doubt, treat it as total loss.</li>
+        <li>Stop the ingestion service and all background workers before restoring anything.</li>
+        <li>Restore the last valid backup (or a specific named backup).</li>
+        <li>Validate the restored database before reopening traffic.</li>
+        <li>Restart the ingestion service and the workers — each automatically resumes from its own checkpoint.</li>
+        <li>Rebuild whatever can be rebuilt for the lost period (dependency graph, business transaction registry).</li>
+        <li>Clearly communicate the affected time window.</li>
+      </ol>
+      <div class="callout callout-warn">
+        <span class="icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5L16.3 15.2H1.7L9 2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 7.3v3.6M9 12.9v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <p>A backup that has never been restored is not a verified backup. A monthly test restore, and a full drill at least once a year, are recommended.</p>
+      </div>
+    </section>
+
+    <!-- ============ REFERENCE ============ -->
+    <section class="doc-part" id="s-ref" data-part="ref" aria-label="Reference">
+      <p class="part-eyebrow">Reference</p>
+
+      <h2 id="api">Query API</h2>
+      <p>Neurons exposes an HTTP API that powers every screen described in this document. Every call must present a token in the <code>X-Neurones-Token</code> header, except for a handful of technical endpoints.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Category</th><th scope="col">Endpoints</th><th scope="col">Contents</th></tr></thead>
+        <tbody>
+          <tr><td>Catalog</td><td class="mono">4</td><td>Applications, environments, per-application aggregates.</td></tr>
+          <tr><td>Services</td><td class="mono">3</td><td>Service list, metrics, service map.</td></tr>
+          <tr><td>Traces</td><td class="mono">8</td><td>Search, filters, trace-based service map, trace detail.</td></tr>
+          <tr><td>Logs</td><td class="mono">2</td><td>Log list and volume.</td></tr>
+          <tr><td>RUM</td><td class="mono">42</td><td>Overview, Web Vitals, sessions, replay, journeys, frontend errors, geography.</td></tr>
+          <tr><td>Business transactions</td><td class="mono">20</td><td>Catalog, configuration, groups, notifications, flow map.</td></tr>
+          <tr><td>BT detection rules</td><td class="mono">5</td><td>Create, list, update, delete, prioritize.</td></tr>
+          <tr><td>Business Journeys</td><td class="mono">6</td><td>Create, list, detail, update, delete, funnel.</td></tr>
+          <tr><td>Events</td><td class="mono">15</td><td>List, create, count, monthly summary, retention, purge, lifecycle.</td></tr>
+          <tr><td>External event management</td><td class="mono">3</td><td>Configuration of forwarding to an external tool.</td></tr>
+          <tr><td>Health rules</td><td class="mono">7</td><td>Create, list, detail, evaluation, investigation context.</td></tr>
+          <tr><td>Incidents</td><td class="mono">3</td><td>Create, list, update.</td></tr>
+          <tr><td>Alerting</td><td class="mono">18</td><td>Overview, destinations, templates, policies.</td></tr>
+          <tr><td>Webhooks</td><td class="mono">1</td><td>Receiving transaction alerts, authenticated by signature.</td></tr>
+          <tr><td>OpenTelemetry Collector</td><td class="mono">4</td><td>Registration, retrieval, and configuration reporting for a remote agent.</td></tr>
+          <tr><td>Troubleshoot</td><td class="mono">8</td><td>Contributors, error signatures, window comparison.</td></tr>
+          <tr><td>Database</td><td class="mono">2</td><td>Statistics and metrics for outbound database calls.</td></tr>
+          <tr><td>Data source</td><td class="mono">2</td><td>Active Vertica cluster and immediate failover.</td></tr>
+          <tr><td>Ingestion (OTLP)</td><td class="mono">3</td><td>Receiving traces, logs, and metrics in OpenTelemetry format.</td></tr>
+          <tr><td>Operations</td><td class="mono">2</td><td>Health check and Prometheus export, unauthenticated.</td></tr>
+        </tbody>
+      </table></div>
+      <p class="ref-note">This summary is meant to give a sense of the platform's capabilities; for the technical detail of each parameter, see the interactive Swagger documentation published by the service (path <code>/docs</code>).</p>
+
+      <h2 id="glossary">Glossary</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col" class="col-26">Term</th><th scope="col">Definition</th></tr></thead>
+        <tbody>
+          <tr><td><strong>APM</strong></td><td>Application Performance Monitoring — monitoring application performance.</td></tr>
+          <tr><td><strong>Span</strong></td><td>A single step inside a trace.</td></tr>
+          <tr><td><strong>Trace</strong></td><td>The set of a request's spans, linked together.</td></tr>
+          <tr><td><strong>RED</strong></td><td>Rate, Errors, Duration — a service's three baseline indicators.</td></tr>
+          <tr><td><strong>Rollup</strong></td><td>A periodic aggregation computation that summarizes raw data for fast display.</td></tr>
+          <tr><td><strong>Business transaction</strong></td><td>A named, tracked application entry point, detected automatically.</td></tr>
+          <tr><td><strong>Business Journey</strong></td><td>A conversion funnel linking several pages and business transactions.</td></tr>
+          <tr><td><strong>Health Rule</strong></td><td>A rule defining a threshold on an indicator, whose violation generates an event.</td></tr>
+          <tr><td><strong>Incident / War Room</strong></td><td>A manual, team-opened tracking of an ongoing investigation.</td></tr>
+          <tr><td><strong>RUM</strong></td><td>Real User Monitoring — measuring end users' real experience.</td></tr>
+          <tr><td><strong>Web Vitals</strong></td><td>Standard browser-side perceived-performance indicators: LCP, INP, CLS, FCP, TTFB.</td></tr>
+          <tr><td><strong>GeoIP</strong></td><td>A database mapping IP addresses to geographic locations.</td></tr>
+          <tr><td><strong>Vertica</strong></td><td>The analytical database that serves as the single data warehouse for the entire platform.</td></tr>
+          <tr><td><strong>OTel Collector</strong></td><td>The component that receives telemetry from instrumented applications and forwards it to Neurons.</td></tr>
+          <tr><td><strong>Retention</strong></td><td>The length of time a data category is kept before automatic deletion.</td></tr>
+          <tr><td><strong>vbr</strong></td><td>Vertica Backup and Restore — the utility bundled with Vertica to back up and restore the database.</td></tr>
+        </tbody>
+      </table></div>
+
+      <footer class="doc-footer">
+        Neurons — Application Monitoring Guide · Confoline internal documentation
+      </footer>
+    </section>
+
+  </main>
+
+  <!-- ============ RIGHT TOC ============ -->
+  <aside class="toc" id="toc">
+    <nav aria-labelledby="tocLabel">
+      <div class="toc-label" id="tocLabel">On this page</div>
+      <div class="toc-group active" data-toc-part="intro">
+        <a href="#quest" class="active">What is Neurons?</a>
+        <a href="#flow">How data arrives</a>
+        <a href="#concepts">Key concepts</a>
+      </div>
+      <div class="toc-group" data-toc-part="part1">
+        <a href="#apps">Applications</a>
+        <a href="#services">Services &amp; dependency map</a>
+        <a href="#traces">Traces</a>
+        <a href="#bt">Business transactions</a>
+        <a href="#bj">Business Journeys</a>
+        <a href="#errors">Errors</a>
+        <a href="#db">Database</a>
+      </div>
+      <div class="toc-group" data-toc-part="part2">
+        <a href="#logs">Logs</a>
+        <a href="#events">Events</a>
+        <a href="#rum">User experience</a>
+        <a href="#troubleshoot">Troubleshoot</a>
+      </div>
+      <div class="toc-group" data-toc-part="part3">
+        <a href="#health-rules">Health rules</a>
+        <a href="#notifications">Policies &amp; notifications</a>
+        <a href="#incidents">Incidents &amp; War Rooms</a>
+      </div>
+      <div class="toc-group" data-toc-part="part4">
+        <a href="#settings">Settings</a>
+        <a href="#retention">Data retention</a>
+        <a href="#otel">OTel instrumentation</a>
+        <a href="#integrations">External integrations</a>
+        <a href="#k8s">Kubernetes deployment</a>
+        <a href="#backup">Backup &amp; restore</a>
+      </div>
+      <div class="toc-group" data-toc-part="ref">
+        <a href="#api">Query API</a>
+        <a href="#glossary">Glossary</a>
+      </div>
+    </nav>
+  </aside>
+
+</div>
+</body>
+</html>
