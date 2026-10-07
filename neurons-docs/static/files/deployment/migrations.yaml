@@ -1,0 +1,36 @@
+# Neurons -- cree la structure de la base PostgreSQL (alembic upgrade head),
+# avec l'image du backend. Les reperes __...__ sont remplaces par le guide (sed).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: neurones-migrations
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: neurones-registry
+      containers:
+        - name: alembic
+          image: __IMAGE_BACKEND__
+          workingDir: /app
+          envFrom:
+            - secretRef: {name: postgres-secret}
+            - secretRef: {name: neurones-backend-secret}
+          env:
+            - {name: POSTGRES_SERVER, value: postgres}
+            - {name: POSTGRES_PORT, value: "5432"}
+            - {name: VERTICA_SERVER, value: "__VERTICA_HOST__"}
+            - {name: VERTICA_PORT, value: "5433"}
+            - {name: VERTICA_DB, value: "__VERTICA_DB__"}
+            - {name: VERTICA_USER, value: neurones_reader}
+            - {name: ENV, value: production}
+          command: [sh, -c]
+          # L'adresse de PostgreSQL est construite ici, mot de passe encode.
+          args:
+            - >-
+              export POSTGRES_DATABASE_URL="$(python -c 'import os, urllib.parse as u;
+              print("postgresql+psycopg2://%s:%s@postgres:5432/%s" % (u.quote(os.environ["POSTGRES_USER"], safe=""),
+              u.quote(os.environ["POSTGRES_PASSWORD"], safe=""), os.environ["POSTGRES_DB"]))')"
+              && exec alembic upgrade head

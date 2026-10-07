@@ -1,0 +1,588 @@
+# Neurons -- les 6 applications et leurs 6 routes web (Ingress, ingress-nginx).
+# Les reperes __...__ sont remplaces par le guide (sed) au moment du deploiement.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neurones-backend-config
+data:
+  ENV: production
+  POSTGRES_SERVER: postgres
+  POSTGRES_PORT: '5432'
+  VERTICA_SERVER: __VERTICA_HOST__
+  VERTICA_PORT: '5433'
+  VERTICA_DB: __VERTICA_DB__
+  VERTICA_USER: neurones_reader
+  VERTICA_MONITOR_ENABLED: '0'
+  ALLOWED_ORIGINS: https://__DOMAINE__
+  OTEL_ENABLED: 'false'
+  OTEL_ENABLE_METRICS: 'false'
+  OTEL_SERVICE_NAME: neurones-backend
+  OTEL_SERVICE_NAMESPACE: neurones
+  OTEL_SERVICE_VERSION: v1.6.13-otel3
+  OTEL_DEPLOYMENT_ENV: client
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neurones-api
+spec:
+  type: ClusterIP
+  selector:
+    app: neurones-backend
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neurones-backend
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: neurones-backend
+  template:
+    metadata:
+      labels:
+        app: neurones-backend
+    spec:
+      imagePullSecrets:
+      - name: neurones-registry
+      containers:
+      - name: backend
+        image: __IMAGE_BACKEND__
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: neurones-backend-config
+        - secretRef:
+            name: postgres-secret
+        - secretRef:
+            name: neurones-backend-secret
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 10
+          failureThreshold: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            memory: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neurones-frontend-config
+data:
+  NODE_ENV: production
+  HOSTNAME: 0.0.0.0
+  APM_API_BASE: http://apm-ingest:8000/api
+  INTERNAL_API_URL: http://neurones-api:8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neurones-frontend
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: neurones-frontend
+  template:
+    metadata:
+      labels:
+        app: neurones-frontend
+    spec:
+      imagePullSecrets:
+      - name: neurones-registry
+      containers:
+      - name: frontend
+        image: __IMAGE_FRONTEND__
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 3000
+        envFrom:
+        - configMapRef:
+            name: neurones-frontend-config
+        - secretRef:
+            name: neurones-frontend-secret
+        startupProbe:
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 10
+          failureThreshold: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neurones-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: neurones-frontend
+  ports:
+  - name: http
+    port: 3000
+    targetPort: http
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apm-vertica-config
+data:
+  VERTICA_HOST: __VERTICA_HOST__
+  VERTICA_PORT: '5433'
+  VERTICA_DB: __VERTICA_DB__
+  VERTICA_USER: neurones_writer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apm-app-config
+data:
+  POSTGRES_SERVER: postgres
+  POSTGRES_PORT: '5432'
+  FLUSH_INTERVAL_S: '30'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apm-ingest
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: apm-ingest
+  template:
+    metadata:
+      labels:
+        app: apm-ingest
+    spec:
+      imagePullSecrets:
+      - name: neurones-registry
+      terminationGracePeriodSeconds: 120
+      containers:
+      - name: ingest
+        image: __IMAGE_APM__
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: apm-vertica-config
+        - configMapRef:
+            name: apm-app-config
+        - secretRef:
+            name: postgres-secret
+        - secretRef:
+            name: apm-secret
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 15
+        startupProbe:
+          httpGet:
+            path: /metrics
+            port: http
+          periodSeconds: 10
+          failureThreshold: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: http
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            memory: 1536Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apm-ingest
+spec:
+  type: ClusterIP
+  selector:
+    app: apm-ingest
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apm-worker-config
+data:
+  APM_EVENT_SERVICE_ERROR_RATE_THRESHOLD: '0.2'
+  APM_EVENT_SERVICE_LATENCY_THRESHOLD_MS: '1500'
+  APM_EVENT_SERVICE_MIN_REQUESTS: '10'
+  BACKFILL_MINUTES: '15'
+  MAX_CATCHUP: '180'
+  ROLLUP_PARALLELISM: '1'
+  RUM_HIST_CATCHUP_TIME_BUDGET_SECONDS: '60'
+  SETTLE_SECONDS: '10'
+  TRACE_SUMMARY_BACKFILL_MINUTES: '43200'
+  TRACE_SUMMARY_MAX_CATCHUP: '50000'
+  TROUBLESHOOT_5M_BACKFILL_BUCKETS: '8640'
+  TROUBLESHOOT_5M_MAX_CATCHUP: '10000'
+  TROUBLESHOOT_ERR_1H_BACKFILL_BUCKETS: '720'
+  TROUBLESHOOT_ERR_1H_MAX_CATCHUP: '1000'
+  TROUBLESHOOT_ERR_5M_BACKFILL_BUCKETS: '8640'
+  TROUBLESHOOT_ERR_5M_MAX_CATCHUP: '10000'
+  VERTICA_SOCKET_TIMEOUT: '180'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apm-worker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: apm-worker
+  template:
+    metadata:
+      labels:
+        app: apm-worker
+    spec:
+      imagePullSecrets:
+      - name: neurones-registry
+      containers:
+      - name: worker
+        image: __IMAGE_APM__
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - worker.py
+        envFrom:
+        - configMapRef:
+            name: apm-vertica-config
+        - configMapRef:
+            name: apm-app-config
+        - configMapRef:
+            name: apm-worker-config
+        - secretRef:
+            name: postgres-secret
+        - secretRef:
+            name: apm-secret
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            memory: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apm-trace-graph-config
+data:
+  TRACE_GRAPH_BACKFILL_MINUTES: '5'
+  TRACE_GRAPH_INTERVAL_MIN: '1'
+  TRACE_GRAPH_MAX_CATCHUP: '15'
+  TRACE_GRAPH_SETTLE_SECONDS: '30'
+  VERTICA_SOCKET_TIMEOUT: '180'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apm-trace-graph-worker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: apm-trace-graph-worker
+  template:
+    metadata:
+      labels:
+        app: apm-trace-graph-worker
+    spec:
+      imagePullSecrets:
+      - name: neurones-registry
+      containers:
+      - name: trace-graph
+        image: __IMAGE_APM__
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - trace_graph_worker.py
+        envFrom:
+        - configMapRef:
+            name: apm-vertica-config
+        - configMapRef:
+            name: apm-trace-graph-config
+        env:
+        - name: VERTICA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: apm-secret
+              key: VERTICA_PASSWORD
+        - name: NEURONES_INGEST_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: apm-secret
+              key: NEURONES_INGEST_TOKEN
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apm-canonicalization-worker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: apm-canonicalization-worker
+  template:
+    metadata:
+      labels:
+        app: apm-canonicalization-worker
+    spec:
+      imagePullSecrets:
+      - name: neurones-registry
+      containers:
+      - name: canonicalization
+        image: __IMAGE_APM__
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - apm_canonicalization_worker.py
+        envFrom:
+        - configMapRef:
+            name: apm-vertica-config
+        - configMapRef:
+            name: apm-app-config
+        - secretRef:
+            name: postgres-secret
+        - secretRef:
+            name: apm-secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: neurones-root
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - __DOMAINE__
+    secretName: neurones-tls
+  rules:
+  - host: __DOMAINE__
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: neurones-frontend
+            port:
+              number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: neurones-api
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '60'
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: __DOMAINE__
+    http:
+      paths:
+      - path: /api/
+        pathType: Prefix
+        backend:
+          service:
+            name: neurones-api
+            port:
+              number: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: neurones-ws
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: __DOMAINE__
+    http:
+      paths:
+      - path: /ws/
+        pathType: Prefix
+        backend:
+          service:
+            name: neurones-api
+            port:
+              number: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: neurones-apm-bff
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '60'
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: __DOMAINE__
+    http:
+      paths:
+      - path: /api/apm/
+        pathType: Prefix
+        backend:
+          service:
+            name: neurones-frontend
+            port:
+              number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: neurones-guide
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    nginx.ingress.kubernetes.io/rewrite-target: /guide/index.html
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: __DOMAINE__
+    http:
+      paths:
+      - path: /guide/?$
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: neurones-frontend
+            port:
+              number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: apm-ingest-otlp
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 16m
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: __DOMAINE__
+    http:
+      paths:
+      - path: /v1/traces
+        pathType: Exact
+        backend:
+          service:
+            name: apm-ingest
+            port:
+              number: 8000
+      - path: /v1/logs
+        pathType: Exact
+        backend:
+          service:
+            name: apm-ingest
+            port:
+              number: 8000
+      - path: /v1/metrics
+        pathType: Exact
+        backend:
+          service:
+            name: apm-ingest
+            port:
+              number: 8000

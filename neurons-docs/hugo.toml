@@ -30,6 +30,10 @@ disableHugoGeneratorInject = true
     parent = "application-onboarding"
     name = "OpenTelemetry"
     weight = 1
+  [[languages.en.menus.onboarding]]
+    identifier = "deployment"
+    name = "Deployment"
+    weight = 2
 
 [languages.fr]
   label = "Français"
@@ -45,6 +49,10 @@ disableHugoGeneratorInject = true
     parent = "application-onboarding"
     name = "OpenTelemetry"
     weight = 1
+  [[languages.fr.menus.onboarding]]
+    identifier = "deployment"
+    name = "Déploiement"
+    weight = 2
 
 [markup.goldmark]
   [markup.goldmark.parser]
