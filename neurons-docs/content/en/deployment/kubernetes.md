@@ -102,7 +102,7 @@ export VERTICA_HOST='<TO FILL: Vertica server>'
 export VERTICA_DB='<TO FILL: Vertica database name>'
 ```
 
-The passwords of the two accounts Neurons will use (nothing is displayed while typing):
+The passwords of the two accounts Neurons will use (nothing is displayed while typing). Avoid the characters `'`, `$`, `\` and the backtick in these passwords: they would break the following commands.
 
 ```bash
 read -rs -p "Password to create for neurones_reader: " LECTEUR_MDP; echo
@@ -114,7 +114,7 @@ read -rs -p "Password to create for neurones_writer: " ECRIVAIN_MDP; echo
 
 ### Create the apm schema and its 89 tables
 
-The `dbadmin` password is requested.
+The `dbadmin` password is requested, on each of the three `vsql` commands of this step.
 
 ```bash
 vsql -h "$VERTICA_HOST" -d "$VERTICA_DB" -U dbadmin -f apm-tables.sql
@@ -153,6 +153,8 @@ export JETON=$(openssl rand -hex 32)
 ```
 
 ### The HTTPS certificate of your domain
+
+Give the **path of the file** (for example `/root/neurons.crt`), not its contents.
 
 ```bash
 export CERTIFICAT='<TO FILL: certificate path, e.g. /root/neurons.crt>'
@@ -234,9 +236,13 @@ Expected: the last line shows the latest migration (`... -> 9a4f6b2e7c15`).
 export ADMIN_EMAIL='<TO FILL: administrator email>'
 ```
 
+Use a validly formed email address: reserved domains (`.test`, `.local`, `.invalid`) are accepted when stored, but **rejected at login**.
+
 ```bash
 read -rs -p "Neurons administrator password: " ADMIN_MDP; echo
 ```
+
+Same rule: no `'`, `$`, `\` or backtick in this password.
 
 ### Store them in PostgreSQL
 

@@ -102,7 +102,7 @@ export VERTICA_HOST='<À REMPLIR : serveur Vertica>'
 export VERTICA_DB='<À REMPLIR : nom de la base Vertica>'
 ```
 
-Les mots de passe des deux comptes que Neurons va utiliser (rien ne s'affiche pendant la saisie) :
+Les mots de passe des deux comptes que Neurons va utiliser (rien ne s'affiche pendant la saisie). Évitez les caractères `'`, `$`, `\` et l'apostrophe inversée dans ces mots de passe : ils casseraient les commandes suivantes.
 
 ```bash
 read -rs -p "Mot de passe a creer pour neurones_reader : " LECTEUR_MDP; echo
@@ -114,7 +114,7 @@ read -rs -p "Mot de passe a creer pour neurones_writer : " ECRIVAIN_MDP; echo
 
 ### On crée le schéma apm et ses 89 tables
 
-Le mot de passe de `dbadmin` est demandé.
+Le mot de passe de `dbadmin` est demandé, à chacune des trois commandes `vsql` de cette étape.
 
 ```bash
 vsql -h "$VERTICA_HOST" -d "$VERTICA_DB" -U dbadmin -f apm-tables.sql
@@ -153,6 +153,8 @@ export JETON=$(openssl rand -hex 32)
 ```
 
 ### Le certificat HTTPS de votre domaine
+
+Indiquez le **chemin du fichier** (par exemple `/root/neurons.crt`), pas son contenu.
 
 ```bash
 export CERTIFICAT='<À REMPLIR : chemin du certificat, ex. /root/neurons.crt>'
@@ -234,9 +236,13 @@ Attendu : la dernière ligne indique la dernière migration (`... -> 9a4f6b2e7c1
 export ADMIN_EMAIL='<À REMPLIR : email de l administrateur>'
 ```
 
+Utilisez une adresse e-mail de forme valide : les domaines réservés (`.test`, `.local`, `.invalid`) sont acceptés à l'enregistrement, mais **refusés à la connexion**.
+
 ```bash
 read -rs -p "Mot de passe de l'administrateur Neurons : " ADMIN_MDP; echo
 ```
+
+Même consigne : pas de `'`, `$`, `\` ni d'apostrophe inversée dans ce mot de passe.
 
 ### On les enregistre dans PostgreSQL
 
