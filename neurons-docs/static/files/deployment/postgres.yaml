@@ -32,6 +32,12 @@ spec:
         app: postgres
     spec:
       terminationGracePeriodSeconds: 60
+      # PostgreSQL runs as its own user (uid 999), never as root: as root the
+      # image changes the owner of its data folder, which NFS volumes refuse.
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
       imagePullSecrets:
         - name: neurones-registry
       containers:
